@@ -61,6 +61,12 @@
 - `src/lib/audio/retro-synth.ts` — Zero-asset Web Audio API 8-bit chiptune synthesizer (`playRetroSfx`, `isSfxMuted`, `setSfxMuted`) generating square/triangle/sawtooth sound effects without external audio files.
 - `src/components/game/SoundToggleButton.tsx` — HUD Mute/Unmute button persisted in `localStorage` (`isSfxMuted`, `setSfxMuted`).
 - `src/lib/audio/sfx-observer.ts` — Compares previous vs. next `GameStore` slices to trigger matching 8-bit chiptune sound effects (`step`, `hit`, `ranged`, `skill`, `chest`, `potion`, `shrine`, `levelup`, `victory`, `defeat`).
+- `prisma/schema.prisma` — Added `RunScore` model (`mode: "dungeon" | "endless"`, `gameId?`, `turnsTaken`, `depthReached`, `heroName`, `heroClass`, `heroLevel`) for speedrun and Endless Hall of Fame rankings.
+- `src/lib/feature-flag-defs.ts` — Added `leaderboards_enabled` feature flag to toggle score submissions and leaderboards in real time.
+- `src/actions/leaderboards.ts` — `submitRunScore()` and `getDungeonLeaderboard()` / `getEndlessLeaderboard()` server actions.
+- `src/components/game/LeaderboardCard.tsx` — Top 10 Speedrun Leaderboard (fewest turns) and Endless Hall of Fame (deepest depth, then fewest turns).
+- `src/components/game/LeaderboardCard.tsx` — Displays Top 10 Speedrun rankings (fewest turns) on `/play/[id]` and Top 10 Endless Hall of Fame rankings (deepest depth, then fewest turns) on `/endless`.
+- `src/components/game/CommunitySection.tsx` — Props: `gameId`, `currentUserId`, `upvoteCount`, `hasUpvoted`, `comments` (`{ id, content, createdAtLabel, userId, authorName }[]`).
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -87,4 +93,7 @@
 - [x] **Phase 30:** Database-Backed Feature Flag System & Admin Toggle Panel (`isAdmin` on `User`, `/admin/flags`, route & action guards) completed.
 - [x] **Phase 31:** Stripe Checkout — Arcade Coin Top-Ups & Creator Pro (`isPro`) completed (`/billing`, `/api/stripe/webhook`, Pro floor/class limits in `/studio`, `PRO` badges).
 - [x] **Phase 32:** Retro 8-Bit Chiptune Synthesizer (Zero-Asset Web Audio Engine & HUD Mute Toggle) completed (`retro-synth.ts`, `sfx-observer.ts`, `SoundToggleButton.tsx`).
+- [x] **Phase 33:** Victory Speedrun Leaderboards & Endless Hall of Fame completed (`RunScore` model, `src/actions/leaderboards.ts`, `LeaderboardCard.tsx`, automatic victory submission in `RpgPlayer.tsx`).
+- [ ] **Phase 34:** Monster Patrol AI & Telegraphed Boss Special Attacks (Studio Configurable) *(Next)*
+- [ ] **Phase 35:** Custom Retro Chiptune Background Music Sequencer
 

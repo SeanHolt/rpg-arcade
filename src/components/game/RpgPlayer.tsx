@@ -13,8 +13,9 @@ import {
     type SavedRunData,
 } from "./SaveRunControls";
 import { useGameStore } from "@/store/useGameStore";
-import { getDefaultFeatureFlags, type FeatureFlagsMap } from "@/lib/feature-flag-defs";
+import { type FeatureFlagsMap } from "@/lib/feature-flag-defs";
 import { SoundToggleButton } from "./SoundToggleButton";
+import { submitRunScore } from "@/actions/leaderboards";
 
 type RpgPlayerProps = {
     gameId?: string;
@@ -23,7 +24,7 @@ type RpgPlayerProps = {
     isEndless?: boolean;
     savedRun?: SavedRunData;
     isLoggedIn?: boolean;
-    flags?: FeatureFlagsMap;
+    flags: FeatureFlagsMap;
 };
 
 export function RpgPlayer({
@@ -62,12 +63,12 @@ export function RpgPlayer({
         buyShopItem,
         activeQuests,
         completedQuestIds,
+        turnsTaken,
         acceptQuest,
         claimQuestReward,
         triggerClassSkill,
         sellGear,
     } = useGameStore();
-
     useEffect(() => {
         initGame(blueprint, isEndless, flags);
     }, [blueprint, isEndless, flags, initGame]);
@@ -83,7 +84,7 @@ export function RpgPlayer({
             : null;
 
     useEffect(() => {
-        if (!currentRunKey || claimedForRunRef.current === currentRunKey) return;
+        if (!currentRunKey || !player || claimedForRunRef.current === currentRunKey) return;
         claimedForRunRef.current = currentRunKey;
 
         claimDungeonClearReward({ gameId, isEndless, endlessDepth }).then((res) => {
@@ -91,7 +92,19 @@ export function RpgPlayer({
                 setRewardState({ key: currentRunKey, message: res.message });
             }
         });
-    }, [currentRunKey, gameId, isEndless, endlessDepth]);
+
+        if (flags.leaderboards_enabled) {
+            submitRunScore({
+                gameId,
+                isEndless,
+                heroName: player.name,
+                heroClass: player.className,
+                heroLevel: player.level,
+                turnsTaken,
+                depthReached: endlessDepth,
+            });
+        }
+    }, [currentRunKey, gameId, isEndless, endlessDepth, player, turnsTaken, flags.leaderboards_enabled]);
 
     const rewardMsg =
         rewardState && rewardState.key === currentRunKey ? rewardState.message : null;
@@ -133,11 +146,10 @@ export function RpgPlayer({
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [status, activeNpcId, movePlayer, rangedAttack, triggerClassSkill]);
-    const activeFlags = flags ?? getDefaultFeatureFlags();
     if (status === "selecting") {
         return (
             <div>
-                {gameId && savedRun && activeFlags.mid_run_saves === true && (
+                {gameId && savedRun && flags.mid_run_saves === true && (
                     <ResumeSaveBanner
                         gameId={gameId}
                         savedRun={savedRun}
@@ -189,13 +201,14 @@ export function RpgPlayer({
                     </div>
                     <p className="mt-1 text-sm text-zinc-400">
                         Created by <span className="text-zinc-200">{authorName}</span> • Floor:{" "}
-                        <span className="font-semibold text-emerald-400">{currentFloor.name}</span>
+                        <span className="font-semibold text-emerald-400">{currentFloor.name}</span> • Turns:{" "}
+                        <span className="font-mono font-semibold text-zinc-200">{turnsTaken}</span>
                     </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                     <SoundToggleButton />
-                    {(gameId || isEndless) && activeFlags.mid_run_saves && status === "playing" && (
+                    {(gameId || isEndless) && flags.mid_run_saves && status === "playing" && (
                         <SaveProgressButton
                             gameId={gameId}
                             isEndless={isEndless}
@@ -210,6 +223,7 @@ export function RpgPlayer({
                                 usedShrines,
                                 openedChests,
                                 exploredTiles,
+                                turnsTaken,
                                 potions,
                                 gearBag,
                                 activeQuests,
@@ -247,7 +261,7 @@ export function RpgPlayer({
                                         ? `${player.name} defeated the guardian! Ready to descend deeper?`
                                         : `${player.name} defeated the boss of ${liveBlueprint.title} at Level ${player.level}!`
                                     : isEndless
-                                        ? `${player.name} reached Depth ${endlessDepth} at Level ${player.level}.`
+                                        ? `${player.name} reached Depth ${endlessDepth} at Level ${player.level}. (Completed in ${turnsTaken} turns)`
                                         : `${player.name} fell in battle. Try a different class or heal at shrines!`}
                             </p>
 

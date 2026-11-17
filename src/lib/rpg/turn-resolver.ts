@@ -35,6 +35,7 @@ export type TurnState = {
   activeQuests: ActiveQuestProgress[];
   logs: string[];
   flags?: FeatureFlagsMap;
+  turnsTaken: number;
 };
 
 function isFloorCleared(
@@ -102,6 +103,7 @@ export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial
       enemiesByFloor: { ...enemiesByFloor, [currentFloorId]: updatedEnemies },
       player: tickPlayerTurn(updatedPlayer),
       activeQuests: updatedQuests,
+      turnsTaken: state.turnsTaken + 1,
       logs: [
         cleared
           ? `🏆 Sniped ${target.name} and cleared the entire floor!`
@@ -131,6 +133,7 @@ export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial
       status: nextPlayerHp === 0 ? "defeat" : "playing",
       enemiesByFloor: { ...enemiesByFloor, [currentFloorId]: updatedEnemies },
       player: tickPlayerTurn({ ...player, hp: nextPlayerHp, statuses: enemyFx.nextStatuses }),
+      turnsTaken: state.turnsTaken + 1,
       logs: [
         `🏹 Shot ${target.name} (${dmg} dmg).${hitFx.note} Countered for ${counter} dmg!${enemyFx.note}`,
         ...logs,
@@ -141,6 +144,7 @@ export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial
   return {
     enemiesByFloor: { ...enemiesByFloor, [currentFloorId]: updatedEnemies },
     player: tickPlayerTurn(player),
+    turnsTaken: state.turnsTaken + 1,
     logs: [
       `🏹 Shot ${target.name} for ${dmg} dmg (${nextHp}/${target.hp} HP)!${hitFx.note}`,
       ...logs,
@@ -256,6 +260,7 @@ export function resolveMove(state: TurnState, dx: number, dy: number): Partial<T
       gearBag: nextGear,
       player: tickPlayerTurn(updatedPlayer),
       activeQuests: updatedQuests,
+      turnsTaken: state.turnsTaken + 1,
       logs: [
         cleared ? `${msg} 🏆 All enemies defeated and all chests looted!` : msg,
         ...readyMessages,
@@ -272,6 +277,7 @@ export function resolveMove(state: TurnState, dx: number, dy: number): Partial<T
       return {
         currentFloorId: stairs.toFloorId,
         exploredTiles: reveal(stairs.toFloorId, stairs.to.x, stairs.to.y),
+        turnsTaken: state.turnsTaken + 1,
         player: tickPlayerTurn({ ...player, x: stairs.to.x, y: stairs.to.y }),
         logs: pushLog(`🪜 ${stairs.label ?? `Moved to ${dest?.name ?? stairs.toFloorId}`}.`),
       };
@@ -286,6 +292,7 @@ export function resolveMove(state: TurnState, dx: number, dy: number): Partial<T
       usedShrines: [...usedShrines, shrineKey],
       exploredTiles: reveal(currentFloorId, tx, ty),
       player: tickPlayerTurn({ ...player, x: tx, y: ty, hp: healedHp, statuses: [] }),
+      turnsTaken: state.turnsTaken + 1,
       logs: pushLog(`✨ Rested at Healing Shrine (+${healedHp - player.hp} HP & cleansed statuses)!`),
     };
   }
@@ -293,6 +300,7 @@ export function resolveMove(state: TurnState, dx: number, dy: number): Partial<T
   // 6. Standard move
   return {
     exploredTiles: reveal(currentFloorId, tx, ty),
+    turnsTaken: state.turnsTaken + 1,
     player: tickPlayerTurn({ ...player, x: tx, y: ty }),
   };
 }

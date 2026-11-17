@@ -2,26 +2,32 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { EndlessClientShell } from "@/components/game/EndlessClientShell";
-import type { SavedRunData } from "@/components/game/SaveRunControls";
-import { getFeatureFlags, isFeatureEnabled } from "@/lib/feature-flags";
+import { getFeatureFlags } from "@/lib/feature-flags";
+import { getEndlessLeaderboard } from "@/actions/leaderboards";
 import { FeatureDisabledBanner } from "@/components/game/FeatureDisabledBanner";
+import { EndlessClientShell } from "@/components/game/EndlessClientShell";
+import { LeaderboardCard } from "@/components/game/LeaderboardCard";
+import type { SavedRunData } from "@/components/game/SaveRunControls";
 
 async function EndlessLoader() {
   await connection();
-   if (!(await isFeatureEnabled("endless_mode"))) {
-    return <FeatureDisabledBanner featureName="endless_mode" />
+  const [session, flags] = await Promise.all([auth(), getFeatureFlags()]);
+
+  if (!flags.endless_mode) {
+    return <FeatureDisabledBanner featureName="Endless Dungeon Mode" />;
   }
-  const flags = await getFeatureFlags();
-  const session = await auth();
+
   const userId = session?.user?.id;
 
-  const dbSave = userId
-    ? await prisma.endlessSave.findUnique({
-        where: { userId },
-        select: { floorName: true, heroLevel: true, stateJson: true, updatedAt: true },
-      })
-    : null;
+  const [dbSave, hallOfFame] = await Promise.all([
+    userId
+      ? prisma.endlessSave.findUnique({
+          where: { userId },
+          select: { floorName: true, heroLevel: true, stateJson: true, updatedAt: true },
+        })
+      : null,
+    flags.leaderboards_enabled ? getEndlessLeaderboard() : Promise.resolve([]),
+  ]);
 
   const cloudSave: SavedRunData | undefined = dbSave
     ? {
@@ -32,7 +38,23 @@ async function EndlessLoader() {
       }
     : undefined;
 
-  return <EndlessClientShell isLoggedIn={Boolean(userId)} flags={flags} cloudSave={cloudSave} />;
+  return (
+    <div className="space-y-8">
+      <EndlessClientShell
+        isLoggedIn={Boolean(userId)}
+        cloudSave={cloudSave}
+        flags={flags}
+      />
+
+      {flags.leaderboards_enabled && (
+        <LeaderboardCard
+          title="🏆 Endless Abyss Hall of Fame"
+          rows={hallOfFame}
+          isEndless
+        />
+      )}
+    </div>
+  );
 }
 
 export default function EndlessModePage() {

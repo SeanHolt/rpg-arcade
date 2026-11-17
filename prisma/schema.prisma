@@ -30,6 +30,7 @@ model User {
   saves GameSave[]
    following     Follow[]        @relation("UserFollowing")
   followers     Follow[]        @relation("UserFollowers")
+  runScores        RunScore[]
   endlessSave EndlessSave?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -124,6 +125,7 @@ model Game {
   upvotes Upvote[]
   comments Comment[]
   saves GameSave[]
+  runScores        RunScore[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -211,4 +213,22 @@ model StripePayment {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+model RunScore {
+  id           String   @id @default(cuid())
+  userId       String
+  gameId       String?
+  mode         String   @default("dungeon") // "dungeon" | "endless"
+  heroName     String
+  heroClass    String   @default("Adventurer")
+  heroLevel    Int      @default(1)
+  turnsTaken   Int
+  depthReached Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, turnsTaken])
+  @@index([mode, depthReached, turnsTaken])
 }

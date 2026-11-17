@@ -59,6 +59,7 @@ type GameStore = {
   completedQuestIds: string[];
   logs: string[];
   flags: FeatureFlagsMap;
+  turnsTaken: number;
 
   initGame: (
     blueprint: RpgBlueprint,
@@ -115,6 +116,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   completedQuestIds: [],
   logs: [],
   flags: getDefaultFeatureFlags(),
+  turnsTaken: 0,
 
   initGame: (blueprint, isEndless = false, flags) =>
     set({
@@ -147,6 +149,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       player,
       enemiesByFloor: buildInitialEnemies(blueprint),
       usedShrines: [],
+      turnsTaken: 0,
       openedChests: [],
       exploredTiles: getRevealedKeys(
         blueprint.player.startFloorId,
@@ -180,6 +183,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       gearBag: snapshot.gearBag,
       activeQuests: snapshot.activeQuests ?? [],
       completedQuestIds: snapshot.completedQuestIds ?? [],
+      turnsTaken: snapshot.turnsTaken ?? 0,
       logs: ["💾 Resumed saved run!", ...snapshot.logs].slice(0, 30),
     });
   },
