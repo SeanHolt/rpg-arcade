@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { getUserOwnedPacks } from "@/lib/rpg/load-owned-packs";
 import { DungeonStudio } from "@/components/studio/DungeonStudio";
 
@@ -10,8 +11,12 @@ async function StudioAuthGate() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const ownedPacks = await getUserOwnedPacks(session.user.id);
-  return <DungeonStudio ownedPacks={ownedPacks} />;
+  const [user, ownedPacks] = await Promise.all([
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } }),
+    getUserOwnedPacks(session.user.id),
+  ]);
+
+  return <DungeonStudio ownedPacks={ownedPacks} isPro={Boolean(user?.isPro)} />;
 }
 
 export default function StudioPage() {

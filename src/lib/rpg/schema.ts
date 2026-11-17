@@ -170,11 +170,11 @@ export const RpgBlueprintSchema = z
       atk: z.number().int().min(1).max(999).default(15),
       def: z.number().int().min(0).max(999).default(5),
     }),
-    classes: z.array(HeroClassSchema).max(6).default([]),
+    classes: z.array(HeroClassSchema).max(12).default([]),
     floors: z
       .array(FloorSchema)
       .min(1, "Dungeon must have at least 1 floor")
-      .max(15, "Dungeon cannot exceed 15 floors"),
+      .max(30, "Dungeon cannot exceed 15 floors"),
   })
   .superRefine((data, ctx) => {
     const floorMap = new Map(data.floors.map((f) => [f.id, f]));

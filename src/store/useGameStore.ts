@@ -24,6 +24,7 @@ import {
   executeQuestClaim,
   executeShopPurchase,
 } from "@/lib/rpg/npc-actions";
+import { getDefaultFeatureFlags, type FeatureFlagsMap } from "@/lib/feature-flag-defs";
 
 export type {
   ActiveEnemy,
@@ -53,8 +54,13 @@ type GameStore = {
   activeQuests: ActiveQuestProgress[];
   completedQuestIds: string[];
   logs: string[];
+  flags: FeatureFlagsMap;
 
-  initGame: (blueprint: RpgBlueprint, isEndless?: boolean) => void;
+  initGame: (
+    blueprint: RpgBlueprint,
+    isEndless?: boolean,
+    flags?: FeatureFlagsMap,
+  ) => void;
   startRun: (classId?: string, customName?: string) => void;
   restoreSnapshot: (snapshot: SerializedRunSnapshot) => void;
   descendEndlessDepth: () => void;
@@ -89,11 +95,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   activeQuests: [],
   completedQuestIds: [],
   logs: [],
+  flags: getDefaultFeatureFlags(),
 
-  initGame: (blueprint, isEndless = false) =>
+  initGame: (blueprint, isEndless = false, flags) =>
     set({
       blueprint,
       isEndless,
+      flags: flags ?? getDefaultFeatureFlags(),
       endlessDepth: 1,
       status: "selecting",
       selectedClassId: blueprint.classes?.at(0)?.id ?? null,
@@ -106,7 +114,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { blueprint } = get();
     if (!blueprint) return;
     const chosen = blueprint.classes?.find((c) => c.id === classId);
-    const { player, potions, gearBag, startLog } = buildStartingHero(blueprint, chosen, customName);
+    const { player, potions, gearBag, startLog } = buildStartingHero(
+      blueprint,
+      chosen,
+      customName,
+    );
     set({
       status: "playing",
       selectedClassId: chosen?.id ?? null,
@@ -121,7 +133,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         blueprint.player.startFloorId,
         blueprint.player.startX,
         blueprint.player.startY,
-        blueprint.visionRadius ?? 2
+        blueprint.visionRadius ?? 2,
       ),
       potions,
       gearBag,
@@ -158,7 +170,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!blueprint || !player) return;
     const nextDepth = endlessDepth + 1;
     const { floor, spawnX, spawnY } = generateEndlessFloor(nextDepth);
-    const enemies = floor.enemies.map((e) => ({ ...e, currentHp: e.hp, statuses: [] }));
+    const enemies = floor.enemies.map((e) => ({
+      ...e,
+      currentHp: e.hp,
+      statuses: [],
+    }));
     set({
       blueprint: { ...blueprint, floors: [floor] },
       status: "playing",
@@ -169,8 +185,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       enemiesByFloor: { [floor.id]: enemies },
       usedShrines: [],
       openedChests: [],
-      exploredTiles: getRevealedKeys(floor.id, spawnX, spawnY, blueprint.visionRadius ?? 2),
-      logs: [`⬇️ Descended into Endless Depth ${nextDepth}!`, ...logs].slice(0, 30),
+      exploredTiles: getRevealedKeys(
+        floor.id,
+        spawnX,
+        spawnY,
+        blueprint.visionRadius ?? 2,
+      ),
+      logs: [`⬇️ Descended into Endless Depth ${nextDepth}!`, ...logs].slice(
+        0,
+        30,
+      ),
     });
   },
 
@@ -192,7 +216,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       player: { ...player, hp: healedHp },
       potions: potions.filter((p) => p.id !== potionId),
-      logs: [`🧪 Drank ${potion.name} (+${healedHp - player.hp} HP)!`, ...logs].slice(0, 30),
+      logs: [
+        `🧪 Drank ${potion.name} (+${healedHp - player.hp} HP)!`,
+        ...logs,
+      ].slice(0, 30),
     });
   },
 
@@ -203,14 +230,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!item) return;
     const currentGear = player.equippedGear ?? {};
     const replaced = currentGear[item.slot];
-    const earnedGold = replaced && replaced.id !== item.id ? getGearSellPrice(replaced) : 0;
-    const nextBag = gearBag.filter((g) => g.id !== gearId && g.id !== replaced?.id);
+    const earnedGold =
+      replaced && replaced.id !== item.id ? getGearSellPrice(replaced) : 0;
+    const nextBag = gearBag.filter(
+      (g) => g.id !== gearId && g.id !== replaced?.id,
+    );
     const nextPlayer = recalculateStats({
       ...player,
       gold: player.gold + earnedGold,
       equippedGear: { ...currentGear, [item.slot]: item },
     });
-    const sellNote = replaced ? ` Auto-sold ${replaced.name} for +${earnedGold}g!` : "";
+    const sellNote = replaced
+      ? ` Auto-sold ${replaced.name} for +${earnedGold}g!`
+      : "";
     set({
       player: nextPlayer,
       gearBag: nextBag,
@@ -244,7 +276,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       s.gearBag,
       s.logs,
       npcId,
-      shopItemId
+      shopItemId,
     );
     if (res) set(res);
   },
@@ -258,7 +290,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       s.activeQuests,
       s.completedQuestIds,
       s.logs,
-      npcId
+      npcId,
     );
     if (res) set(res);
   },
@@ -273,7 +305,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       s.potions,
       s.gearBag,
       s.logs,
-      questId
+      questId,
     );
     if (res) set(res);
   },
@@ -281,18 +313,33 @@ export const useGameStore = create<GameStore>((set, get) => ({
   rangedAttack: (enemyId) => {
     const s = get();
     if (!s.blueprint || !s.player || s.status !== "playing") return;
-    set(resolveRangedAttack({ ...s, blueprint: s.blueprint, player: s.player }, enemyId));
+    set(
+      resolveRangedAttack(
+        { ...s, blueprint: s.blueprint, player: s.player },
+        enemyId,
+      ),
+    );
   },
-
   triggerClassSkill: () => {
     const s = get();
     if (!s.blueprint || !s.player || s.status !== "playing") return;
+    if (!s.flags.class_skills) {
+      set({
+        logs: ["⚠️ Class skills are currently disabled.", ...s.logs].slice(
+          0,
+          30,
+        ),
+      });
+      return;
+    }
     set(resolveClassSkill({ ...s, blueprint: s.blueprint, player: s.player }));
   },
 
   movePlayer: (dx, dy) => {
     const s = get();
     if (!s.blueprint || !s.player || s.status !== "playing") return;
-    set(resolveMove({ ...s, blueprint: s.blueprint, player: s.player }, dx, dy));
+    set(
+      resolveMove({ ...s, blueprint: s.blueprint, player: s.player }, dx, dy),
+    );
   },
 }));

@@ -4,12 +4,16 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import type { SerializedRunSnapshot } from "@/lib/rpg/runtime-types";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 export async function saveMidRunProgress(input: {
   gameId: string;
   floorName: string;
   snapshot: SerializedRunSnapshot;
 }) {
+  if (!(await isFeatureEnabled("mid_run_saves"))) {
+    return { error: "Mid-run saving is temporarily disabled for maintenance." };
+  }
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Log in to save your dungeon progress." };
@@ -59,6 +63,9 @@ export async function saveEndlessProgress(input: {
   depth: number;
   snapshot: SerializedRunSnapshot;
 }) {
+  if (!(await isFeatureEnabled("mid_run_saves"))) {
+    return { error: "Mid-run saving is temporarily disabled for maintenance." };
+  }
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Log in to save Endless runs to your account." };

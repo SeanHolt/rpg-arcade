@@ -34,7 +34,7 @@ type EditorStore = {
   selectNpc: (id: string | null) => void;
   updateMeta: (fields: Partial<RpgBlueprint>) => void;
   setCustomSprite: (slot: "wall" | "floor" | "stairs" | "shrine" | "chest", sprite?: string) => void;
-  addFloor: () => void;
+  addFloor: (maxFloors: number) => void;
   renameFloor: (floorId: string, name: string) => void;
   resizeActiveFloor: (width: number, height: number) => void;
   paintCell: (x: number, y: number) => void;
@@ -42,7 +42,7 @@ type EditorStore = {
   updateChest: (chestId: string, fields: Partial<RpgChest>) => void;
   updateNpc: (npcId: string, fields: Partial<RpgNpc>) => void;
   setStairTarget: (fromX: number, fromY: number, toFloorId: string, toX: number, toY: number) => void;
-  addHeroClass: () => void;
+  addHeroClass: (maxClasses: number) => void;
   updateHeroClass: (classId: string, fields: Partial<RpgHeroClass>) => void;
   removeHeroClass: (classId: string) => void;
   setClassStarterItems: (classId: string, items: RpgStarterItem[]) => void;
@@ -84,9 +84,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       },
     })),
 
-  addFloor: () => {
+  addFloor: (maxFloors = 15) => {
     const { blueprint } = get();
-    if (blueprint.floors.length >= 15) return;
+    if (blueprint.floors.length >= maxFloors) return;
     const newFloor: RpgFloor = {
       id: `floor-${Date.now().toString(36)}`,
       name: `Floor ${blueprint.floors.length + 1}`,
@@ -180,10 +180,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       },
     })),
 
-  addHeroClass: () => {
+  addHeroClass: (maxClasses = 6) => {
     const { blueprint } = get();
     const current = blueprint.classes ?? [];
-    if (current.length >= 6) return;
+    if (current.length >= maxClasses) return;
     const nextClass: RpgHeroClass = {
       id: `class-${Date.now().toString(36)}`,
       name: `Class ${current.length + 1}`,

@@ -17,6 +17,7 @@ import {
 } from "./elemental-helpers";
 import { resolveMeleeBump } from "./melee-combat";
 import { getGearSellPrice } from "./gear-perks";
+import { FeatureFlagsMap } from "../feature-flag-defs";
 
 export type TurnState = {
   blueprint: RpgBlueprint;
@@ -33,6 +34,7 @@ export type TurnState = {
   activeNpcId: string | null;
   activeQuests: ActiveQuestProgress[];
   logs: string[];
+  flags?: FeatureFlagsMap;
 };
 
 function isFloorCleared(
@@ -110,7 +112,9 @@ export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial
     };
   }
 
-  const hitFx = applyElementalHit(target.statuses ?? [], getEffectivePlayerElement(player));
+  const activeElement =
+    state.flags?.elemental_effects === false ? "none" : getEffectivePlayerElement(player);
+  const hitFx = applyElementalHit(target.statuses ?? [], activeElement);
   const freezeCheck = consumeFreeze(hitFx.nextStatuses);
   const updatedEnemies = floorEnemies.map((e) =>
     e.id === target.id ? { ...e, currentHp: nextHp, statuses: freezeCheck.nextStatuses } : e
@@ -120,7 +124,9 @@ export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial
   if (dist === 1 && !freezeCheck.wasFrozen) {
     const counter = Math.max(1, target.atk - player.def);
     const nextPlayerHp = Math.max(0, player.hp - counter);
-    const enemyFx = applyElementalHit(player.statuses ?? [], target.element);
+    const enemyEl = state.flags?.elemental_effects === false ? "none" : target.element;
+    const enemyFx = applyElementalHit(player.statuses ?? [], enemyEl);
+
     return {
       status: nextPlayerHp === 0 ? "defeat" : "playing",
       enemiesByFloor: { ...enemiesByFloor, [currentFloorId]: updatedEnemies },
@@ -171,9 +177,11 @@ export function resolveMove(state: TurnState, dx: number, dy: number): Partial<T
     );
 
   // 1. NPC interaction
-  const npc = (floor.npcs ?? []).find((n) => n.x === tx && n.y === ty);
-  if (npc) {
-    return { activeNpcId: npc.id, logs: pushLog(`💬 Spoke with ${npc.name}.`) };
+  if (state.flags?.npc_interactions !== false) {
+    const npc = (floor.npcs ?? []).find((n) => n.x === tx && n.y === ty);
+    if (npc) {
+      return { activeNpcId: npc.id, logs: pushLog(`💬 Spoke with ${npc.name}.`) };
+    }
   }
 
   // 2. Melee bump enemy

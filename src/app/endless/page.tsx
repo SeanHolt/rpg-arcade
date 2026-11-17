@@ -4,9 +4,15 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { EndlessClientShell } from "@/components/game/EndlessClientShell";
 import type { SavedRunData } from "@/components/game/SaveRunControls";
+import { getFeatureFlags, isFeatureEnabled } from "@/lib/feature-flags";
+import { FeatureDisabledBanner } from "@/components/game/FeatureDisabledBanner";
 
 async function EndlessLoader() {
   await connection();
+   if (!(await isFeatureEnabled("endless_mode"))) {
+    return <FeatureDisabledBanner featureName="endless_mode" />
+  }
+  const flags = await getFeatureFlags();
   const session = await auth();
   const userId = session?.user?.id;
 
@@ -26,7 +32,7 @@ async function EndlessLoader() {
       }
     : undefined;
 
-  return <EndlessClientShell isLoggedIn={Boolean(userId)} cloudSave={cloudSave} />;
+  return <EndlessClientShell isLoggedIn={Boolean(userId)} flags={flags} cloudSave={cloudSave} />;
 }
 
 export default function EndlessModePage() {

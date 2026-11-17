@@ -17,6 +17,7 @@ type StudioProps = {
   initialBlueprint?: RpgBlueprint;
   initialIsPublic?: boolean;
   ownedPacks?: OwnedPackOption[];
+  isPro?: boolean;
 };
 
 export function DungeonStudio({
@@ -24,6 +25,7 @@ export function DungeonStudio({
   initialBlueprint,
   initialIsPublic = true,
   ownedPacks = [],
+  isPro = false,
 }: StudioProps) {
   const router = useRouter();
   const { blueprint, activeFloorId, loadBlueprint, updateMeta, setActiveFloor, addFloor } =
@@ -32,6 +34,8 @@ export function DungeonStudio({
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [testData, setTestData] = useState<RpgBlueprint | null>(null);
+  const maxFloors = isPro ? 30 : 15;
+  const maxClasses = isPro ? 12 : 6;
 
   useEffect(() => {
     loadBlueprint(initialBlueprint);
@@ -164,9 +168,9 @@ export function DungeonStudio({
 
       <OwnedPacksBar packs={ownedPacks} />
 
-      <ClassBuilderPanel />
+       <ClassBuilderPanel maxClasses={maxClasses} />
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {blueprint.floors.map((f) => (
           <button
             key={f.id}
@@ -181,13 +185,20 @@ export function DungeonStudio({
             {f.name}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={addFloor}
-          className="rounded-lg border border-dashed border-zinc-700 px-3 py-1.5 text-xs text-zinc-300"
-        >
-          + Add Floor
-        </button>
+        {blueprint.floors.length < maxFloors && (
+          <button
+            type="button"
+            onClick={() => addFloor(maxFloors)}
+            className="rounded-lg border border-dashed border-zinc-700 px-3 py-1.5 text-xs text-zinc-300"
+          >
+            + Add Floor ({blueprint.floors.length}/{maxFloors})
+          </button>
+        )}
+        {!isPro && (
+          <a href="/billing" className="ml-2 text-xs text-amber-300 hover:underline">
+            👑 Upgrade to Pro for 30 floors &amp; 12 classes
+          </a>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">

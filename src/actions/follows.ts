@@ -3,8 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 export async function toggleFollowCreator(creatorId: string) {
+  if (!(await isFeatureEnabled("social_follows"))) {
+    return { error: "Creator following is temporarily disabled." };
+  }
   const session = await auth();
   const followerId = session?.user?.id;
 

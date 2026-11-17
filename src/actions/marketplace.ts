@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { CreateAssetPackSchema, type PackSpritesPayload } from "@/lib/rpg/pack-schema";
+import {
+  CreateAssetPackSchema,
+  type PackSpritesPayload,
+} from "@/lib/rpg/pack-schema";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 export async function publishAssetPack(input: {
   title: string;
@@ -11,12 +15,19 @@ export async function publishAssetPack(input: {
   price: number;
   sprites: PackSpritesPayload;
 }) {
+  if (!(await isFeatureEnabled("marketplace"))) {
+    return {
+      error: "The Asset Marketplace is temporarily disabled for maintenance.",
+    };
+  }
   const session = await auth();
   if (!session?.user?.id) return { error: "Log in to publish an asset pack." };
 
   const parsed = CreateAssetPackSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues.at(0)?.message ?? "Invalid pack data." };
+    return {
+      error: parsed.error.issues.at(0)?.message ?? "Invalid pack data.",
+    };
   }
 
   const hasAnySprite =
@@ -24,7 +35,10 @@ export async function publishAssetPack(input: {
     parsed.data.sprites.entities.length > 0;
 
   if (!hasAnySprite) {
-    return { error: "Draw or upload at least one tile or character sprite before publishing." };
+    return {
+      error:
+        "Draw or upload at least one tile or character sprite before publishing.",
+    };
   }
 
   const pack = await prisma.assetPack.create({
@@ -46,6 +60,11 @@ export async function publishAssetPack(input: {
 }
 
 export async function unlockAssetPack(packId: string) {
+  if (!(await isFeatureEnabled("marketplace"))) {
+    return {
+      error: "The Asset Marketplace is temporarily disabled for maintenance.",
+    };
+  }
   const session = await auth();
   if (!session?.user?.id) return { error: "Log in to unlock asset packs." };
   const buyerId = session.user.id;
@@ -64,7 +83,9 @@ export async function unlockAssetPack(packId: string) {
   if (!buyer || !pack) return { error: "Asset pack not found." };
   if (alreadyOwned) return { success: true };
   if (buyer.coins < pack.price) {
-    return { error: `Not enough Arcade Coins (need ${pack.price}, you have ${buyer.coins}).` };
+    return {
+      error: `Not enough Arcade Coins (need ${pack.price}, you have ${buyer.coins}).`,
+    };
   }
 
   await prisma.$transaction([

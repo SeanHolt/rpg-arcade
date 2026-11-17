@@ -3,11 +3,14 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { logoutUser } from "@/actions/auth";
 import { connection } from "next/server";
+import { checkUserIsAdmin } from "@/actions/flags";
+import { getFeatureFlags } from "@/lib/feature-flags";
 
 export async function Navbar() {
     await connection();
     const session = await auth();
-
+    const flags = await getFeatureFlags();
+    const isAdmin = await checkUserIsAdmin(session?.user?.id, session?.user?.email);
     return (
         <header className="border-b border-zinc-800 bg-zinc-950 text-zinc-100">
             <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
@@ -19,12 +22,17 @@ export async function Navbar() {
                     <Link href="/" className="text-zinc-300 hover:text-white">
                         Browse Games
                     </Link>
-                    <Link href="/endless" className="font-medium text-amber-400 hover:text-amber-300">
+                    {flags.endless_mode === true && <Link href="/endless" className="font-medium text-amber-400 hover:text-amber-300">
                         ♾️ Endless Mode
-                    </Link>
-                    <Link href="/marketplace" className="text-zinc-300 hover:text-white">
+                    </Link>}
+                    {flags.marketplace === true && <Link href="/marketplace" className="text-zinc-300 hover:text-white">
                         🎨 Asset Store
-                    </Link>
+                    </Link>}
+                    {flags.billing_enabled && (
+                        <Link href="/billing" className="text-amber-300 hover:text-amber-200">
+                            🪙 Get Coins / Pro
+                        </Link>
+                    )}
                     {session?.user ? (
                         <>
                             <Link href="/dashboard" className="text-zinc-300 hover:text-white">
@@ -42,6 +50,7 @@ export async function Navbar() {
                             >
                                 Upload JSON
                             </Link>
+                            {isAdmin && <Link href="/admin/flags" className="text-amber-300 hover:text-amber-200">⚙️ Flags</Link>}
                             <form action={logoutUser}>
                                 <button type="submit" className="text-zinc-400 hover:text-red-400">
                                     Log out

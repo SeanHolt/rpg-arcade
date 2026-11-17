@@ -44,6 +44,20 @@
 - `src/components/upload/` — `JsonCardStudio.tsx`, `JsonMetaCard.tsx`, `JsonHeroCard.tsx`, `JsonFloorsCard.tsx` (interactive card-based JSON builder & two-way raw JSON editor at `/upload`).
 - `src/components/upload/JsonFloorEntities.tsx` — Extracted enemy and chest list editors from `JsonFloorsCard.tsx`.
 - `src/components/upload/JsonCardStudio.tsx` — Unified two-way JSON Card Builder & Raw JSON Editor with `.json` file import, live Zod validation, Test Play modal, and one-click Arcade publishing.
+- `prisma/schema.prisma` — Added `isAdmin Boolean @default(false)` to `User` and `FeatureFlag` model (`key @id`, `enabled`, `updatedAt`).
+- `src/lib/feature-flags.ts` — Typed `FEATURE_FLAGS` registry and fail-safe `getFeatureFlags()` / `isFeatureEnabled()` loaders.
+- `src/actions/flags.ts` — `toggleFeatureFlag(key, enabled)` server action restricted to `isAdmin` users (or `ADMIN_EMAIL`).
+- `src/components/admin/FeatureFlagManager.tsx` & `src/app/admin/flags/page.tsx` — Live Admin Dashboard to enable/disable arcade features in real time.
+- `src/components/admin/FeatureFlagManager.tsx` — Interactive Admin toggle switches for all 8 arcade subsystems.
+- `src/app/admin/flags/page.tsx` — Protected `/admin/flags` dashboard (requires `user.isAdmin` or `ADMIN_EMAIL`).
+- `src/components/game/FeatureDisabledBanner.tsx` — Clean fallback notice displayed when a route or subsystem is temporarily disabled via feature flags.
+- `src/lib/feature-flag-defs.ts` — Client-safe feature flag keys, metadata, and `getDefaultFeatureFlags()` separated from Prisma server queries in `src/lib/feature-flags.ts`.
+- `prisma/schema.prisma` — Added `isPro Boolean @default(false)` and `stripeCustomerId String?` to `User`, plus `StripePayment` model (`stripeSessionId @unique`) for idempotent webhook fulfillment.
+- `src/lib/feature-flag-defs.ts` — Added `billing_enabled` feature flag to toggle Stripe Checkout and `/billing` in real time.
+- `src/lib/stripe.ts` & `src/lib/billing-catalog.ts` — Stripe server SDK singleton and typed Coin Top-Up + Creator Pro product catalog.
+- `src/actions/billing.ts` — `createCheckoutSession(productId)` server action launching hosted Stripe Checkout.
+- `src/app/api/stripe/webhook/route.ts` — Verified Stripe webhook handler (`checkout.session.completed`) with idempotent `StripePayment` recording, coin top-ups, and `isPro` activation.
+- `src/components/billing/BillingStorefront.tsx` & `src/app/billing/page.tsx` — Coin Top-Up & Creator Pro upgrade storefront with purchase history.
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -67,3 +81,6 @@
 - [x] **Phase 27:** Creator Profile Pages & "Follow Creator" Feed completed (`src/app/creator/[id]/page.tsx`, `FollowButton.tsx`, Home Arcade `following` filter).
 - [x] **Phase 28:** 5-Slot Equipment System with Unique Slot Perks & Auto-Sell for Run Gold completed.
 - [x] **Phase 29:** Interactive JSON Card Builder & Two-Way Raw JSON Editor (`/upload`) completed.
+- [x] **Phase 30:** Database-Backed Feature Flag System & Admin Toggle Panel (`isAdmin` on `User`, `/admin/flags`, route & action guards) completed.
+- [x] **Phase 31:** Stripe Checkout — Arcade Coin Top-Ups & Creator Pro (`isPro`) completed (`/billing`, `/api/stripe/webhook`, Pro floor/class limits in `/studio`, `PRO` badges).
+

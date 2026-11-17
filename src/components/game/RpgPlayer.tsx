@@ -13,6 +13,7 @@ import {
     type SavedRunData,
 } from "./SaveRunControls";
 import { useGameStore } from "@/store/useGameStore";
+import { getDefaultFeatureFlags, type FeatureFlagsMap } from "@/lib/feature-flag-defs";
 
 type RpgPlayerProps = {
     gameId?: string;
@@ -21,6 +22,7 @@ type RpgPlayerProps = {
     isEndless?: boolean;
     savedRun?: SavedRunData;
     isLoggedIn?: boolean;
+    flags?: FeatureFlagsMap;
 };
 
 export function RpgPlayer({
@@ -30,6 +32,7 @@ export function RpgPlayer({
     isEndless,
     savedRun,
     isLoggedIn,
+    flags,
 }: RpgPlayerProps) {
     const {
         blueprint: activeBlueprint,
@@ -65,8 +68,8 @@ export function RpgPlayer({
     } = useGameStore();
 
     useEffect(() => {
-        initGame(blueprint, isEndless);
-    }, [blueprint, isEndless, initGame]);
+        initGame(blueprint, isEndless, flags);
+    }, [blueprint, isEndless, flags, initGame]);
 
     const [rewardState, setRewardState] = useState<{ key: string; message: string } | null>(null);
     const claimedForRunRef = useRef<string | null>(null);
@@ -129,11 +132,11 @@ export function RpgPlayer({
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [status, activeNpcId, movePlayer, rangedAttack, triggerClassSkill]);
-
+    const activeFlags = flags ?? getDefaultFeatureFlags();
     if (status === "selecting") {
         return (
             <div>
-                {gameId && savedRun && (
+                {gameId && savedRun && activeFlags.mid_run_saves === true &&  (
                     <ResumeSaveBanner
                         gameId={gameId}
                         savedRun={savedRun}
@@ -190,7 +193,7 @@ export function RpgPlayer({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {(gameId || isEndless) && status === "playing" && (
+                    {(gameId || isEndless) && status === "playing" && activeFlags.mid_run_saves === true && (
                         <SaveProgressButton
                             gameId={gameId}
                             isEndless={isEndless}

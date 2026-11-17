@@ -15,8 +15,9 @@ async function EditStudioLoader({ params }: EditPageProps) {
   if (!session?.user?.id) redirect("/login");
 
   const { id } = await params;
-  const [game, ownedPacks] = await Promise.all([
+  const [game, user, ownedPacks] = await Promise.all([
     prisma.game.findUnique({ where: { id } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } }),
     getUserOwnedPacks(session.user.id),
   ]);
 
@@ -31,6 +32,7 @@ async function EditStudioLoader({ params }: EditPageProps) {
       initialBlueprint={parsed.data}
       initialIsPublic={game.isPublic}
       ownedPacks={ownedPacks}
+      isPro={Boolean(user?.isPro)}
     />
   );
 }

@@ -5,13 +5,15 @@ import { createEndlessBlueprint } from "@/lib/rpg/endless-generator";
 import type { RpgBlueprint } from "@/lib/rpg/schema";
 import { RpgPlayer } from "./RpgPlayer";
 import { ENDLESS_SAVE_KEY, type SavedRunData } from "./SaveRunControls";
+import { FeatureFlagsMap } from "@/lib/feature-flags";
 
 type Props = {
   isLoggedIn: boolean;
   cloudSave?: SavedRunData;
+  flags?: FeatureFlagsMap;
 };
 
-export function EndlessClientShell({ isLoggedIn, cloudSave }: Props) {
+export function EndlessClientShell({ isLoggedIn, cloudSave, flags }: Props) {
   const [blueprint, setBlueprint] = useState<RpgBlueprint | null>(null);
   const [savedRun, setSavedRun] = useState<SavedRunData | undefined>(cloudSave);
 
@@ -41,6 +43,7 @@ export function EndlessClientShell({ isLoggedIn, cloudSave }: Props) {
       authorName="Procedural Dungeon Engine"
       isEndless
       isLoggedIn={isLoggedIn}
+      flags={flags}
       savedRun={savedRun}
     />
   );

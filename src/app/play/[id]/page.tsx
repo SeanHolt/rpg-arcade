@@ -5,6 +5,7 @@ import { RpgBlueprintSchema } from "@/lib/rpg/schema";
 import { RpgPlayer } from "@/components/game/RpgPlayer";
 import { auth } from "@/auth";
 import { CommunitySection } from "@/components/game/CommunitySection";
+import { getFeatureFlags } from "@/lib/feature-flags";
 
 type PlayPageProps = {
   params: Promise<{ id: string }>;
@@ -12,7 +13,7 @@ type PlayPageProps = {
 
 async function PlayableGameLoader({ params }: PlayPageProps) {
   const { id } = await params;
-
+  const flags = await getFeatureFlags();
   const session = await auth();
   const game = await prisma.game.findUnique({
     where: { id },
@@ -53,6 +54,7 @@ async function PlayableGameLoader({ params }: PlayPageProps) {
         gameId={game.id}
         blueprint={parsed.data}
         authorName={game.author.name ?? "Anonymous Creator"}
+        flags={flags}
         savedRun={
           existingSave
             ? {

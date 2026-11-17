@@ -4,9 +4,15 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PackSpritesPayloadSchema } from "@/lib/rpg/pack-schema";
 import { MarketplaceFeed, type MarketplacePackItem } from "@/components/marketplace/MarketplaceFeed";
+import { FeatureDisabledBanner } from "@/components/game/FeatureDisabledBanner";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 async function MarketplaceLoader() {
   await connection();
+     if (!(await isFeatureEnabled("marketplace"))) {
+      return <FeatureDisabledBanner featureName="marketplace" />
+    }
+  
   const session = await auth();
   const userId = session?.user?.id;
 

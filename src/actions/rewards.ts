@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 const DAILY_COIN_CAP = 150;
 
@@ -17,6 +18,7 @@ export async function claimDungeonClearReward(input: {
   isEndless?: boolean;
   endlessDepth?: number;
 }): Promise<RewardResult> {
+  if (!(await isFeatureEnabled("coin_rewards"))) return { awarded: 0 };
   const session = await auth();
   if (!session?.user?.id) {
     return {
