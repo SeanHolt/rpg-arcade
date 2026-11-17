@@ -58,6 +58,9 @@
 - `src/actions/billing.ts` — `createCheckoutSession(productId)` server action launching hosted Stripe Checkout.
 - `src/app/api/stripe/webhook/route.ts` — Verified Stripe webhook handler (`checkout.session.completed`) with idempotent `StripePayment` recording, coin top-ups, and `isPro` activation.
 - `src/components/billing/BillingStorefront.tsx` & `src/app/billing/page.tsx` — Coin Top-Up & Creator Pro upgrade storefront with purchase history.
+- `src/lib/audio/retro-synth.ts` — Zero-asset Web Audio API 8-bit chiptune synthesizer (`playRetroSfx`, `isSfxMuted`, `setSfxMuted`) generating square/triangle/sawtooth sound effects without external audio files.
+- `src/components/game/SoundToggleButton.tsx` — HUD Mute/Unmute button persisted in `localStorage` (`isSfxMuted`, `setSfxMuted`).
+- `src/lib/audio/sfx-observer.ts` — Compares previous vs. next `GameStore` slices to trigger matching 8-bit chiptune sound effects (`step`, `hit`, `ranged`, `skill`, `chest`, `potion`, `shrine`, `levelup`, `victory`, `defeat`).
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -83,4 +86,5 @@
 - [x] **Phase 29:** Interactive JSON Card Builder & Two-Way Raw JSON Editor (`/upload`) completed.
 - [x] **Phase 30:** Database-Backed Feature Flag System & Admin Toggle Panel (`isAdmin` on `User`, `/admin/flags`, route & action guards) completed.
 - [x] **Phase 31:** Stripe Checkout — Arcade Coin Top-Ups & Creator Pro (`isPro`) completed (`/billing`, `/api/stripe/webhook`, Pro floor/class limits in `/studio`, `PRO` badges).
+- [x] **Phase 32:** Retro 8-Bit Chiptune Synthesizer (Zero-Asset Web Audio Engine & HUD Mute Toggle) completed (`retro-synth.ts`, `sfx-observer.ts`, `SoundToggleButton.tsx`).
 

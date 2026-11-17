@@ -14,6 +14,7 @@ import {
 } from "./SaveRunControls";
 import { useGameStore } from "@/store/useGameStore";
 import { getDefaultFeatureFlags, type FeatureFlagsMap } from "@/lib/feature-flag-defs";
+import { SoundToggleButton } from "./SoundToggleButton";
 
 type RpgPlayerProps = {
     gameId?: string;
@@ -136,7 +137,7 @@ export function RpgPlayer({
     if (status === "selecting") {
         return (
             <div>
-                {gameId && savedRun && activeFlags.mid_run_saves === true &&  (
+                {gameId && savedRun && activeFlags.mid_run_saves === true && (
                     <ResumeSaveBanner
                         gameId={gameId}
                         savedRun={savedRun}
@@ -193,7 +194,8 @@ export function RpgPlayer({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {(gameId || isEndless) && status === "playing" && activeFlags.mid_run_saves === true && (
+                    <SoundToggleButton />
+                    {(gameId || isEndless) && activeFlags.mid_run_saves && status === "playing" && (
                         <SaveProgressButton
                             gameId={gameId}
                             isEndless={isEndless}

@@ -24,7 +24,11 @@ import {
   executeQuestClaim,
   executeShopPurchase,
 } from "@/lib/rpg/npc-actions";
-import { getDefaultFeatureFlags, type FeatureFlagsMap } from "@/lib/feature-flag-defs";
+import {
+  getDefaultFeatureFlags,
+  type FeatureFlagsMap,
+} from "@/lib/feature-flag-defs";
+import { playSfxFromTransition } from "@/lib/audio/sfx-observer";
 
 export type {
   ActiveEnemy,
@@ -76,11 +80,26 @@ type GameStore = {
   acceptQuest: (npcId: string) => void;
   claimQuestReward: (questId: string) => void;
 };
+function snapOf(s: {
+  status: GameStatus;
+  player: PlayerRuntimeState | null;
+  openedChests: string[];
+  usedShrines: string[];
+  logs: string[];
+}) {
+  return {
+    status: s.status,
+    player: s.player,
+    openedChestsCount: s.openedChests.length,
+    usedShrinesCount: s.usedShrines.length,
+    logsTop: s.logs.at(0),
+  };
+}
 export const useGameStore = create<GameStore>((set, get) => ({
   blueprint: null,
   isEndless: false,
   endlessDepth: 1,
-  status: "idle",
+  status: "idle" as GameStatus,
   selectedClassId: null,
   customHeroName: "",
   currentFloorId: "",
@@ -204,7 +223,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   usePotion: (potionId) => {
-    const { status, player, potions, logs } = get();
+    const before = get()
+    const { status, player, potions, logs } = before;
     if (status !== "playing" || !player) return;
     const potion = potions.find((p) => p.id === potionId);
     if (!potion) return;
@@ -221,6 +241,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...logs,
       ].slice(0, 30),
     });
+    playSfxFromTransition("potion", snapOf(before), snapOf(get()))
   },
 
   equipGear: (gearId) => {
@@ -279,6 +300,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       shopItemId,
     );
     if (res) set(res);
+    playSfxFromTransition("potion", snapOf(s), snapOf(get()))
   },
 
   acceptQuest: (npcId) => {
@@ -308,38 +330,56 @@ export const useGameStore = create<GameStore>((set, get) => ({
       questId,
     );
     if (res) set(res);
+    playSfxFromTransition("quest", snapOf(s), snapOf(get()))
   },
 
   rangedAttack: (enemyId) => {
-    const s = get();
-    if (!s.blueprint || !s.player || s.status !== "playing") return;
+    const prev = get();
+    if (!prev.blueprint || !prev.player || prev.status !== "playing") return;
+    const before = snapOf(prev);
     set(
       resolveRangedAttack(
-        { ...s, blueprint: s.blueprint, player: s.player },
+        { ...prev, blueprint: prev.blueprint, player: prev.player },
         enemyId,
       ),
     );
+    playSfxFromTransition("ranged", before, snapOf(get()));
   },
+
   triggerClassSkill: () => {
-    const s = get();
-    if (!s.blueprint || !s.player || s.status !== "playing") return;
-    if (!s.flags.class_skills) {
+    const prev = get();
+    if (!prev.blueprint || !prev.player || prev.status !== "playing") return;
+    if (!prev.flags.class_skills) {
       set({
-        logs: ["⚠️ Class skills are currently disabled.", ...s.logs].slice(
+        logs: ["⚠️ Class skills are currently disabled.", ...prev.logs].slice(
           0,
           30,
         ),
       });
       return;
     }
-    set(resolveClassSkill({ ...s, blueprint: s.blueprint, player: s.player }));
+    const before = snapOf(prev);
+    set(
+      resolveClassSkill({
+        ...prev,
+        blueprint: prev.blueprint,
+        player: prev.player,
+      }),
+    );
+    playSfxFromTransition("skill", before, snapOf(get()));
   },
 
   movePlayer: (dx, dy) => {
-    const s = get();
-    if (!s.blueprint || !s.player || s.status !== "playing") return;
+    const prev = get();
+    if (!prev.blueprint || !prev.player || prev.status !== "playing") return;
+    const before = snapOf(prev);
     set(
-      resolveMove({ ...s, blueprint: s.blueprint, player: s.player }, dx, dy),
+      resolveMove(
+        { ...prev, blueprint: prev.blueprint, player: prev.player },
+        dx,
+        dy,
+      ),
     );
+    playSfxFromTransition("move", before, snapOf(get()));
   },
 }));
