@@ -1,0 +1,191 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  password      String?
+  coins         Int             @default(250)
+  games         Game[]
+  upvotes       Upvote[]
+  comments      Comment[]
+  assetPacks    AssetPack[]
+  ownedPacks    PackOwnership[]
+  accounts      Account[]
+  sessions      Session[]
+  coinRewards CoinReward[]
+  saves GameSave[]
+   following     Follow[]        @relation("UserFollowing")
+  followers     Follow[]        @relation("UserFollowers")
+  endlessSave EndlessSave?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+model AssetPack {
+  id          String          @id @default(cuid())
+  title       String
+  description String
+  price       Int             @default(0) // 0 = Free, > 0 = Arcade Coins
+  spritesJson String          // JSON object of named sprites & tile overrides
+  authorId    String
+  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  owners      PackOwnership[]
+  createdAt   DateTime        @default(now())
+
+  @@index([createdAt])
+}
+
+model PackOwnership {
+  id        String    @id @default(cuid())
+  userId    String
+  packId    String
+  createdAt DateTime  @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pack AssetPack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, packId])
+  @@index([userId])
+}
+
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  difficulty  String   @default("Normal")
+  floorCount  Int      @default(1)
+  gameData    String   // Stringified, Zod-validated RPG JSON blueprint
+  isPublic    Boolean  @default(true)
+  playCount   Int      @default(0)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  upvotes Upvote[]
+  comments Comment[]
+  saves GameSave[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([isPublic, createdAt])
+}
+
+model Upvote {
+  id        String   @id @default(cuid())
+  userId    String
+  gameId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+  @@index([gameId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  gameId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, createdAt])
+}
+model CoinReward {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   // e.g., "game:<gameId>" or "endless:<depth>"
+  coins     Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+model GameSave {
+  id        String   @id @default(cuid())
+  userId    String
+  gameId    String
+  floorName String
+  heroLevel Int      @default(1)
+  stateJson String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+  @@index([userId, updatedAt])
+}
+model EndlessSave {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  floorName String
+  depth     Int      @default(1)
+  heroLevel Int      @default(1)
+  stateJson String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
