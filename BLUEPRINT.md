@@ -71,6 +71,11 @@
 - `src/lib/rpg/enemy-ai.ts` — Resolves end-of-turn monster patrol/hunter movement, telegraphed special attack charging (`⚠️`), and heavy special strikes.
 - `src/lib/feature-flag-defs.ts` — Added `smart_enemy_ai` feature flag to toggle patrol movement and telegraphed boss specials.
 - `src/components/studio/EnemyAiEditor.tsx` — Visual Studio configurator for an enemy's `aiBehavior` (`stationary`, `patrol`, `hunter`) and telegraphed `specialAttack` (`name`, `multiplier`, `cooldown`).
+- `src/lib/rpg/schema.ts` — Added optional `musicTrack` (`preset`, `tempoBpm`, `notes` 8-step melody array) to `FloorSchema`.
+- `src/lib/audio/music-presets.ts` — Built-in genre chiptune presets (`crypt`, `scifi`, `pirate`, `magma`, `boss`) and note frequency table (`C3`–`C5`, `"REST"`).
+- `src/lib/audio/music-sequencer.ts` — Zero-asset Web Audio looping 8-step background music player (`startBgMusic`, `stopBgMusic`, `isMusicMuted`, `setMusicMuted`) persisted in `localStorage`.
+- `src/components/game/SoundToggleButton.tsx` — Upgraded with separate **🔊 SFX** and **🎵 Music** HUD toggles persisted in `localStorage`.
+- `src/components/studio/MusicSequencerCard.tsx` — Visual Studio 8-note chiptune melody sequencer (`tempoBpm`, `waveform`, 8 note dropdowns, genre preset loader, and live Preview/Stop button).
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -99,5 +104,4 @@
 - [x] **Phase 32:** Retro 8-Bit Chiptune Synthesizer (Zero-Asset Web Audio Engine & HUD Mute Toggle) completed (`retro-synth.ts`, `sfx-observer.ts`, `SoundToggleButton.tsx`).
 - [x] **Phase 33:** Victory Speedrun Leaderboards & Endless Hall of Fame completed (`RunScore` model, `src/actions/leaderboards.ts`, `LeaderboardCard.tsx`, automatic victory submission in `RpgPlayer.tsx`).
 - [x] **Phase 34:** Monster Patrol AI & Telegraphed Boss Special Attacks (Studio Configurable) completed (`enemy-ai.ts`, `EnemyAiEditor.tsx`, `⚠️ CHARGING` HUD warnings).
-- [ ] **Phase 35:** Custom Retro Chiptune Background Music Sequencer *(Next)*
-
+- [x] **Phase 35:** Custom Retro Chiptune Background Music Sequencer completed (`music-presets.ts`, `music-sequencer.ts`, `SoundToggleButton.tsx`, `MusicSequencerCard.tsx`).

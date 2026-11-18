@@ -82,7 +82,7 @@ export function BillingStorefront({ isLoggedIn, coins, isPro, banner }: Props) {
               key={item.id}
               className={`flex flex-col justify-between rounded-2xl border p-6 ${
                 item.grantsPro
-                  ? "border-amber-600/60 bg-gradient-to-br from-amber-950/30 via-zinc-900 to-zinc-900"
+                  ? "border-amber-600/60 bg-linear-to-br from-amber-950/30 via-zinc-900 to-zinc-900"
                   : "border-zinc-800 bg-zinc-900/70"
               }`}
             >

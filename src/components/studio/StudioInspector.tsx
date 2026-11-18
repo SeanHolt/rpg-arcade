@@ -8,6 +8,7 @@ import { NpcInspectorCard } from "./NpcInspectorCard";
 import type { ElementType } from "@/lib/rpg/schema";
 import { ItemTypeSelect } from "./ItemTypeSelect";
 import { EnemyAiEditor } from "./EnemyAiEditor";
+import { MusicSequencerCard } from "./MusicSequencerCard";
 
 type TileSlot = "wall" | "floor" | "stairs" | "shrine" | "chest";
 
@@ -25,6 +26,7 @@ export function StudioInspector() {
         updateNpc,
         setStairTarget,
         setCustomSprite,
+        setFloorMusic,
     } = useEditorStore();
 
     const [drawingEnemy, setDrawingEnemy] = useState(false);
@@ -93,6 +95,12 @@ export function StudioInspector() {
                         />
                     </label>
                 </div>
+                <MusicSequencerCard
+                    floorName={floor.name}
+                    themeId={blueprint.theme}
+                    musicTrack={floor.musicTrack}
+                    onChange={setFloorMusic}
+                />
             </div>
 
             <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 text-xs">

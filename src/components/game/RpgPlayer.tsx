@@ -16,15 +16,17 @@ import { useGameStore } from "@/store/useGameStore";
 import { type FeatureFlagsMap } from "@/lib/feature-flag-defs";
 import { SoundToggleButton } from "./SoundToggleButton";
 import { submitRunScore } from "@/actions/leaderboards";
+import { startBgMusic, stopBgMusic } from "@/lib/audio/music-sequencer";
+import { THEME_MUSIC_PRESETS } from "@/lib/audio/music-presets";
 
 type RpgPlayerProps = {
-  gameId?: string;
-  blueprint: RpgBlueprint;
-  authorName: string;
-  isEndless?: boolean;
-  isLoggedIn?: boolean;
-  savedRun?: SavedRunData;
-  flags?: FeatureFlagsMap;
+    gameId?: string;
+    blueprint: RpgBlueprint;
+    authorName: string;
+    isEndless?: boolean;
+    isLoggedIn?: boolean;
+    savedRun?: SavedRunData;
+    flags?: FeatureFlagsMap;
 };
 
 export function RpgPlayer({
@@ -75,6 +77,11 @@ export function RpgPlayer({
 
     const [rewardState, setRewardState] = useState<{ key: string; message: string } | null>(null);
     const claimedForRunRef = useRef<string | null>(null);
+    const liveBlueprint = activeBlueprint ?? blueprint;
+    const currentFloor =
+        liveBlueprint.floors.find((f) => f.id === currentFloorId) ?? liveBlueprint.floors.at(0)!;
+    const livingEnemies = (enemiesByFloor[currentFloor.id] ?? []).filter((e) => e.currentHp > 0);
+    const activeNpc = (currentFloor.npcs ?? []).find((n) => n.id === activeNpcId);
 
     const currentRunKey =
         status === "victory" && (gameId || isEndless)
@@ -105,7 +112,17 @@ export function RpgPlayer({
             });
         }
     }, [currentRunKey, gameId, isEndless, endlessDepth, player, turnsTaken, flags?.leaderboards_enabled]);
+    const activeTrack =
+        currentFloor?.musicTrack ?? THEME_MUSIC_PRESETS[liveBlueprint.theme ?? "crypt"];
 
+    useEffect(() => {
+        if (status === "playing" && activeTrack) {
+            startBgMusic(activeTrack);
+        } else {
+            stopBgMusic();
+        }
+        return () => stopBgMusic();
+    }, [status, currentFloorId, activeTrack]);
     const rewardMsg =
         rewardState && rewardState.key === currentRunKey ? rewardState.message : null;
 
@@ -169,11 +186,6 @@ export function RpgPlayer({
     if (!player) {
         return <div className="h-96 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />;
     }
-    const liveBlueprint = activeBlueprint ?? blueprint;
-    const currentFloor =
-        liveBlueprint.floors.find((f) => f.id === currentFloorId) ?? liveBlueprint.floors.at(0)!;
-    const livingEnemies = (enemiesByFloor[currentFloor.id] ?? []).filter((e) => e.currentHp > 0);
-    const activeNpc = (currentFloor.npcs ?? []).find((n) => n.id === activeNpcId);
 
     return (
         <div className="space-y-6">
