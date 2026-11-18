@@ -69,6 +69,7 @@ export function applyCellPaint(
         xpReward: isBoss ? 200 : 25,
         isBoss,
         element: "none",
+        aiBehavior: "stationary",
       },
     ];
     selectedEnemyId = id;

@@ -51,6 +51,7 @@ export const SAMPLE_DUNGEON: RpgBlueprint = {
           xpReward: 20,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "skeleton-1",
@@ -64,6 +65,7 @@ export const SAMPLE_DUNGEON: RpgBlueprint = {
           xpReward: 35,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
       ],
       chests: [
@@ -116,6 +118,7 @@ export const SAMPLE_DUNGEON: RpgBlueprint = {
           xpReward: 50,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "boss-lich",
@@ -129,6 +132,7 @@ export const SAMPLE_DUNGEON: RpgBlueprint = {
           xpReward: 200,
           isBoss: true,
           element: "none",
+          aiBehavior: "hunter",
         },
       ],
       stairways: [

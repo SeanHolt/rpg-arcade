@@ -18,13 +18,13 @@ import { SoundToggleButton } from "./SoundToggleButton";
 import { submitRunScore } from "@/actions/leaderboards";
 
 type RpgPlayerProps = {
-    gameId?: string;
-    blueprint: RpgBlueprint;
-    authorName: string;
-    isEndless?: boolean;
-    savedRun?: SavedRunData;
-    isLoggedIn?: boolean;
-    flags: FeatureFlagsMap;
+  gameId?: string;
+  blueprint: RpgBlueprint;
+  authorName: string;
+  isEndless?: boolean;
+  isLoggedIn?: boolean;
+  savedRun?: SavedRunData;
+  flags?: FeatureFlagsMap;
 };
 
 export function RpgPlayer({
@@ -93,7 +93,7 @@ export function RpgPlayer({
             }
         });
 
-        if (flags.leaderboards_enabled) {
+        if (flags?.leaderboards_enabled) {
             submitRunScore({
                 gameId,
                 isEndless,
@@ -104,7 +104,7 @@ export function RpgPlayer({
                 depthReached: endlessDepth,
             });
         }
-    }, [currentRunKey, gameId, isEndless, endlessDepth, player, turnsTaken, flags.leaderboards_enabled]);
+    }, [currentRunKey, gameId, isEndless, endlessDepth, player, turnsTaken, flags?.leaderboards_enabled]);
 
     const rewardMsg =
         rewardState && rewardState.key === currentRunKey ? rewardState.message : null;
@@ -149,7 +149,7 @@ export function RpgPlayer({
     if (status === "selecting") {
         return (
             <div>
-                {gameId && savedRun && flags.mid_run_saves === true && (
+                {gameId && savedRun && flags?.mid_run_saves === true && (
                     <ResumeSaveBanner
                         gameId={gameId}
                         savedRun={savedRun}
@@ -208,7 +208,7 @@ export function RpgPlayer({
 
                 <div className="flex flex-wrap items-center gap-2">
                     <SoundToggleButton />
-                    {(gameId || isEndless) && flags.mid_run_saves && status === "playing" && (
+                    {(gameId || isEndless) && flags?.mid_run_saves && status === "playing" && (
                         <SaveProgressButton
                             gameId={gameId}
                             isEndless={isEndless}

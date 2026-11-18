@@ -18,6 +18,7 @@ import {
 import { resolveMeleeBump } from "./melee-combat";
 import { getGearSellPrice } from "./gear-perks";
 import { FeatureFlagsMap } from "../feature-flag-defs";
+import { runEnemyTurnPhase } from "./enemy-ai";
 
 export type TurnState = {
   blueprint: RpgBlueprint;
@@ -57,7 +58,7 @@ function tickPlayerTurn(player: PlayerRuntimeState): PlayerRuntimeState {
   return { ...player, hp: nextHp, skillCooldown: nextCd, statuses: nextStatuses };
 }
 
-export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial<TurnState> {
+function computeRangedAttack(state: TurnState, enemyId?: string): Partial<TurnState> {
   const { blueprint, currentFloorId, player, enemiesByFloor, logs } = state;
   if (player.combatType !== "ranged") return {};
 
@@ -152,7 +153,7 @@ export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial
   };
 }
 
-export function resolveMove(state: TurnState, dx: number, dy: number): Partial<TurnState> {
+function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnState> {
   const {
     blueprint,
     currentFloorId,
@@ -303,4 +304,47 @@ export function resolveMove(state: TurnState, dx: number, dy: number): Partial<T
     turnsTaken: state.turnsTaken + 1,
     player: tickPlayerTurn({ ...player, x: tx, y: ty }),
   };
+}
+
+function applyEnemyAiPhase(
+  state: TurnState,
+  result: Partial<TurnState>
+): Partial<TurnState> {
+  const nextStatus = result.status ?? state.status;
+  if (nextStatus !== "playing") return result;
+
+  const activeFloorId = result.currentFloorId ?? state.currentFloorId;
+  const floor = state.blueprint.floors.find((f) => f.id === activeFloorId);
+  if (!floor) return result;
+
+  const enemiesMap = result.enemiesByFloor ?? state.enemiesByFloor;
+  const floorEnemies = enemiesMap[activeFloorId] ?? [];
+  const activePlayer = result.player ?? state.player;
+  const smartAi = state.flags?.smart_enemy_ai !== false;
+
+  const ai = runEnemyTurnPhase(floor, floorEnemies, activePlayer, smartAi);
+  const clearedAfterDot = isFloorCleared(
+    state.isEndless,
+    floor,
+    ai.updatedEnemies,
+    result.openedChests ?? state.openedChests
+  );
+
+  return {
+    ...result,
+    status: ai.playerDefeated ? "defeat" : clearedAfterDot ? "victory" : "playing",
+    enemiesByFloor: { ...enemiesMap, [activeFloorId]: ai.updatedEnemies },
+    player: ai.updatedPlayer,
+    logs: [...ai.aiLogs, ...(result.logs ?? state.logs)].slice(0, 30),
+  };
+}
+
+export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial<TurnState> {
+  return applyEnemyAiPhase(state, computeRangedAttack(state, enemyId));
+}
+
+export function resolveMove(state: TurnState, dx: number, dy: number): Partial<TurnState> {
+  const res = computeMove(state, dx, dy);
+  if (!res.turnsTaken) return res;
+  return applyEnemyAiPhase(state, res);
 }

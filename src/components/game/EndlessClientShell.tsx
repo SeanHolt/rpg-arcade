@@ -3,9 +3,9 @@
 import { startTransition, useEffect, useState } from "react";
 import { createEndlessBlueprint } from "@/lib/rpg/endless-generator";
 import type { RpgBlueprint } from "@/lib/rpg/schema";
+import type { FeatureFlagsMap } from "@/lib/feature-flag-defs";
 import { RpgPlayer } from "./RpgPlayer";
 import { ENDLESS_SAVE_KEY, type SavedRunData } from "./SaveRunControls";
-import { FeatureFlagsMap } from "@/lib/feature-flags";
 
 type Props = {
   isLoggedIn: boolean;
@@ -43,8 +43,8 @@ export function EndlessClientShell({ isLoggedIn, cloudSave, flags }: Props) {
       authorName="Procedural Dungeon Engine"
       isEndless
       isLoggedIn={isLoggedIn}
-      flags={flags}
       savedRun={savedRun}
+      flags={flags}
     />
   );
 }

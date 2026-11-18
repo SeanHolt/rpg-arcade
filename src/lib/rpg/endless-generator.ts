@@ -137,6 +137,7 @@ export function generateEndlessFloor(depth: number): {
       def: Math.round(tpl.baseDef * scale),
       xpReward: Math.round(tpl.xp * scale),
       isBoss: false,
+      aiBehavior: "stationary",
       element: "none",
     });
   }
@@ -154,6 +155,12 @@ export function generateEndlessFloor(depth: number): {
     xpReward: Math.round(80 * scale),
     isBoss: true,
     element: depth % 2 === 0 ? "ice" : "fire",
+    aiBehavior: "hunter",
+    specialAttack: {
+      name: "Abyssal Slam",
+      multiplier: 2,
+      cooldown: 3,
+    },
   });
 
   return {

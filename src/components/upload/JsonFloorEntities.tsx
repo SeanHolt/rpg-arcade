@@ -26,6 +26,7 @@ export function JsonFloorEntities({ floor, onUpdate }: Props) {
           xpReward: 25,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
       ],
     }));

@@ -12,8 +12,9 @@ export type GameStatus =
 export type ActiveEnemy = RpgEnemy & {
   currentHp: number;
   statuses: ActiveStatusEffect[];
+  isChargingSpecial: boolean;
+  specialCooldown: number;
 };
-
 export type PotionItem = {
   id: string;
   name: string;

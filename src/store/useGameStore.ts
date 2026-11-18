@@ -197,6 +197,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...e,
       currentHp: e.hp,
       statuses: [],
+      isChargingSpecial: false,
+      specialCooldown: e.specialAttack?.cooldown ?? 3,
     }));
     set({
       blueprint: { ...blueprint, floors: [floor] },
@@ -208,16 +210,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       enemiesByFloor: { [floor.id]: enemies },
       usedShrines: [],
       openedChests: [],
-      exploredTiles: getRevealedKeys(
-        floor.id,
-        spawnX,
-        spawnY,
-        blueprint.visionRadius ?? 2,
-      ),
-      logs: [`⬇️ Descended into Endless Depth ${nextDepth}!`, ...logs].slice(
-        0,
-        30,
-      ),
+      exploredTiles: getRevealedKeys(floor.id, spawnX, spawnY, blueprint.visionRadius ?? 2),
+      logs: [`⬇️ Descended into Endless Depth ${nextDepth}!`, ...logs].slice(0, 30),
     });
   },
 

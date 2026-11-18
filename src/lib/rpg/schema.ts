@@ -9,7 +9,11 @@ export const ItemTypeEnum = z.enum([
 ]);
 export type RpgItemType = z.infer<typeof ItemTypeEnum>;
 export const ElementTypeSchema = z.enum(["none", "fire", "ice", "venom"]).default("none");
-
+export const EnemySpecialSchema = z.object({
+  name: z.string().min(1).max(32),
+  multiplier: z.number().min(1.2).max(3.5).default(2),
+  cooldown: z.number().int().min(2).max(8).default(3),
+});
 const CoordinateSchema = z.object({
   x: z.number().int().min(0).max(49),
   y: z.number().int().min(0).max(49),
@@ -53,15 +57,17 @@ export const HeroClassSchema = z.object({
 export const EnemySchema = z.object({
   id: z.string().min(1).max(40),
   name: z.string().min(1).max(40),
-  sprite: z.string().min(1).max(8).default("👾"),
+  sprite: SpriteFieldSchema.default("👹"),
   x: z.number().int().min(0).max(49),
   y: z.number().int().min(0).max(49),
   hp: z.number().int().min(1).max(9999),
   atk: z.number().int().min(1).max(999),
   def: z.number().int().min(0).max(999).default(0),
-  xpReward: z.number().int().min(0).max(5000).default(10),
+  xpReward: z.number().int().min(1).max(9999).default(20),
   isBoss: z.boolean().default(false),
   element: ElementTypeSchema,
+  aiBehavior: z.enum(["stationary", "patrol", "hunter"]).default("stationary"),
+  specialAttack: EnemySpecialSchema.optional(),
 });
 
 export const ChestSchema = z.object({
@@ -281,3 +287,4 @@ export type RpgNpc = z.infer<typeof NpcSchema>;
 export type RpgShopItem = z.infer<typeof ShopItemSchema>;
 export type RpgNpcQuest = z.infer<typeof NpcQuestSchema>;
 export type RpgClassSkill = z.infer<typeof ClassSkillSchema>;
+export type RpgEnemySpecial = z.infer<typeof EnemySpecialSchema>;

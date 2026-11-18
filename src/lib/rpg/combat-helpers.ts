@@ -21,6 +21,8 @@ export function buildInitialEnemies(blueprint: RpgBlueprint): Record<string, Act
       ...e,
       currentHp: e.hp,
       statuses: [],
+      isChargingSpecial: false,
+      specialCooldown: e.specialAttack?.cooldown ?? 3,
     }));
   }
   return map;

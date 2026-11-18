@@ -58,6 +58,7 @@ export function createDefaultBlueprint(): RpgBlueprint {
             xpReward: 150,
             isBoss: true,
             element: "none",
+            aiBehavior: "stationary",
           },
         ],
         chests: [],

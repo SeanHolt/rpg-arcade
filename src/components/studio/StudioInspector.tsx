@@ -7,6 +7,7 @@ import { PixelArtModal } from "./PixelArtModal";
 import { NpcInspectorCard } from "./NpcInspectorCard";
 import type { ElementType } from "@/lib/rpg/schema";
 import { ItemTypeSelect } from "./ItemTypeSelect";
+import { EnemyAiEditor } from "./EnemyAiEditor";
 
 type TileSlot = "wall" | "floor" | "stairs" | "shrine" | "chest";
 
@@ -249,6 +250,7 @@ export function StudioInspector() {
                             <option value="venom">🧪 Venom (Poison DoT)</option>
                         </select>
                     </label>
+                    <EnemyAiEditor enemy={enemy} onUpdate={(fields) => updateEnemy(enemy.id, fields)} />
                 </div>
             )}
 

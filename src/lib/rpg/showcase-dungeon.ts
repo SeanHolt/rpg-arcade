@@ -113,6 +113,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 25,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "f1-goblin",
@@ -126,6 +127,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 30,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "f1-golem",
@@ -139,6 +141,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 45,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
       ],
       stairways: [
@@ -192,6 +195,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 50,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "f2-mage",
@@ -205,6 +209,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 55,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "f2-warden",
@@ -218,6 +223,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 100,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
       ],
       stairways: [
@@ -267,6 +273,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 75,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "f3-drake-right",
@@ -280,6 +287,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 75,
           isBoss: false,
           element: "none",
+          aiBehavior: "stationary",
         },
         {
           id: "f3-boss-wyrm",
@@ -293,6 +301,7 @@ export const SHOWCASE_DUNGEON: RpgBlueprint = {
           xpReward: 500,
           isBoss: true,
           element: "none",
+          aiBehavior: "hunter",
         },
       ],
       stairways: [

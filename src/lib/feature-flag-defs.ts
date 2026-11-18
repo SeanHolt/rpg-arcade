@@ -61,10 +61,18 @@ export const FEATURE_FLAG_DEFS = [
       "Enables /billing, Stripe Checkout Coin Packs, and Creator Pro upgrades.",
     defaultEnabled: true,
   },
-   {
+  {
     key: "leaderboards_enabled",
     label: "🏆 Speedrun & Endless Leaderboards",
-    description: "Records winning runs and displays Top 10 Speedrun and Endless Hall of Fame boards.",
+    description:
+      "Records winning runs and displays Top 10 Speedrun and Endless Hall of Fame boards.",
+    defaultEnabled: true,
+  },
+  {
+    key: "smart_enemy_ai",
+    label: "🧠 Monster Patrol AI & Boss Specials",
+    description:
+      "Enables monster patrol/hunter movement and telegraphed boss special attacks.",
     defaultEnabled: true,
   },
 ] as const;
