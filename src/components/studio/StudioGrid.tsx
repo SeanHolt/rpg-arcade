@@ -14,6 +14,8 @@ export function StudioGrid() {
     paintCell,
     paintTileVariant,
     toggleFloorProp,
+    toggleSecretWall,
+    toggleFloorTrap,
   } = useEditorStore();
   const [isPainting, setIsPainting] = useState(false);
 
@@ -22,11 +24,19 @@ export function StudioGrid() {
   if (!floor) return null;
 
   const theme = DUNGEON_THEMES[blueprint.theme ?? "crypt"] ?? DUNGEON_THEMES.crypt;
-  const cols = floor.grid[0]?.length ?? 10;
+  const cols = floor.grid?.length ?? 10;
 
   const handleCellAction = (x: number, y: number, isClickStart: boolean) => {
     if (activeTool === "prop") {
       if (isClickStart) toggleFloorProp(x, y);
+      return;
+    }
+    if (activeTool === "secret_wall") {
+      if (isClickStart) toggleSecretWall(x, y);
+      return;
+    }
+    if (activeTool === "trap") {
+      if (isClickStart) toggleFloorTrap(x, y);
       return;
     }
     paintCell(x, y);
@@ -56,6 +66,17 @@ export function StudioGrid() {
             const npc = (floor.npcs ?? []).find((n) => n.x === x && n.y === y);
             const prop = (floor.props ?? []).find((p) => p.x === x && p.y === y);
             const portal = (floor.portals ?? []).find((pt) => pt.x === x && pt.y === y);
+            const secretWall = (floor.secretWalls ?? []).find(
+              (sw) => sw.x === x && sw.y === y
+            );
+            const trap = (floor.traps ?? []).find((tr) => tr.x === x && tr.y === y);
+
+            const trapIcon =
+              trap?.trapType === "poison_vent"
+                ? "🧪"
+                : trap?.trapType === "lava_crack"
+                  ? "🌋"
+                  : "⚙️";
 
             const baseBg =
               tile === "#"
@@ -115,6 +136,14 @@ export function StudioGrid() {
                       className="text-sm"
                     >
                       🌀
+                    </span>
+                  ) : trap ? (
+                    <span title={`Trap (${trap.damage} dmg)`} className="text-sm">
+                      {trapIcon}
+                    </span>
+                  ) : secretWall ? (
+                    <span title="Secret Breakable Wall" className="text-sm">
+                      🧱
                     </span>
                   ) : tile === "S" ? (
                     <SpriteDisplay

@@ -159,6 +159,19 @@ export const PortalRuneSchema = z.object({
   color: z.enum(["cyan", "purple", "amber"]).default("cyan"),
   oneWay: z.boolean().default(false),
 });
+export const SecretWallSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+});
+
+export const FloorTrapSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  trapType: z.enum(["spikes", "poison_vent", "lava_crack"]).default("spikes"),
+  damage: z.number().int().min(1).max(100).default(8),
+});
 export const FloorSchema = z
   .object({
     id: z.string().min(1).max(40),
@@ -181,6 +194,8 @@ export const FloorSchema = z
       .optional(),
     props: z.array(FloorPropSchema).max(60).optional(),
     portals: z.array(PortalRuneSchema).max(12).optional(),
+    secretWalls: z.array(SecretWallSchema).max(20).optional(),
+    traps: z.array(FloorTrapSchema).max(30).optional(),
     enemies: z.array(EnemySchema).max(50).default([]),
     chests: z.array(ChestSchema).max(30).default([]),
     npcs: z.array(NpcSchema).max(20).default([]),
@@ -241,7 +256,7 @@ export const RpgBlueprintSchema = z
 
     if (floorMap.size !== data.floors.length) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "All floors must have unique IDs.",
       });
       return;
@@ -250,7 +265,7 @@ export const RpgBlueprintSchema = z
     const hasBoss = data.floors.some((f) => f.enemies.some((e) => e.isBoss));
     if (!hasBoss) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "Your RPG must include at least one enemy with 'isBoss: true'.",
       });
@@ -265,7 +280,7 @@ export const RpgBlueprintSchema = z
 
     if (!floorMap.has(data.player.startFloorId)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: `Player startFloorId "${data.player.startFloorId}" does not exist.`,
       });
     } else if (
@@ -276,7 +291,7 @@ export const RpgBlueprintSchema = z
       )
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Player starting coordinates must land on a walkable tile.",
       });
     }
@@ -285,7 +300,7 @@ export const RpgBlueprintSchema = z
       for (const enemy of floor.enemies) {
         if (!isWalkable(floor.id, enemy.x, enemy.y)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `Enemy "${enemy.name}" on floor "${floor.id}" is out of bounds or in a wall.`,
           });
         }
@@ -294,7 +309,7 @@ export const RpgBlueprintSchema = z
       for (const chest of floor.chests) {
         if (!isWalkable(floor.id, chest.x, chest.y)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `Chest "${chest.itemName}" on floor "${floor.id}" is out of bounds or in a wall.`,
           });
         }
@@ -302,7 +317,7 @@ export const RpgBlueprintSchema = z
       for (const npc of floor.npcs) {
         if (!isWalkable(floor.id, npc.x, npc.y)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `NPC "${npc.name}" on floor "${floor.id}" is out of bounds or in a wall.`,
           });
         }
@@ -311,18 +326,18 @@ export const RpgBlueprintSchema = z
       for (const stairs of floor.stairways) {
         if (!isWalkable(floor.id, stairs.from.x, stairs.from.y)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `Stairway origin (${stairs.from.x}, ${stairs.from.y}) on floor "${floor.id}" is invalid.`,
           });
         }
         if (!floorMap.has(stairs.toFloorId)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `Stairway on floor "${floor.id}" points to unknown floor "${stairs.toFloorId}".`,
           });
         } else if (!isWalkable(stairs.toFloorId, stairs.to.x, stairs.to.y)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `Stairway destination (${stairs.to.x}, ${stairs.to.y}) on "${stairs.toFloorId}" is invalid.`,
           });
         }
@@ -346,3 +361,5 @@ export type RpgMusicNote = z.infer<typeof MusicNoteEnum>;
 export type RpgFloorMusic = z.infer<typeof FloorMusicSchema>;
 export type RpgFloorProp = z.infer<typeof FloorPropSchema>;
 export type RpgPortalRune = z.infer<typeof PortalRuneSchema>;
+export type RpgSecretWall = z.infer<typeof SecretWallSchema>;
+export type RpgFloorTrap = z.infer<typeof FloorTrapSchema>;

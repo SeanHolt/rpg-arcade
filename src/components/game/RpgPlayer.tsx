@@ -70,6 +70,7 @@ export function RpgPlayer({
         claimQuestReward,
         triggerClassSkill,
         sellGear,
+        brokenWalls,
     } = useGameStore();
     const initializedForRef = useRef<RpgBlueprint | null>(null);
     useEffect(() => {
@@ -240,6 +241,7 @@ export function RpgPlayer({
                                 openedChests,
                                 exploredTiles,
                                 turnsTaken,
+                                brokenWalls,
                                 potions,
                                 gearBag,
                                 activeQuests,

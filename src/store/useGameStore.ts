@@ -60,6 +60,7 @@ type GameStore = {
   logs: string[];
   flags: FeatureFlagsMap;
   turnsTaken: number;
+  brokenWalls: string[];
 
   initGame: (
     blueprint: RpgBlueprint,
@@ -117,7 +118,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   logs: [],
   flags: getDefaultFeatureFlags(),
   turnsTaken: 0,
-
+  brokenWalls: [],
   initGame: (blueprint, isEndless = false, flags) =>
     set({
       blueprint,
@@ -162,6 +163,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       activeQuests: [],
       completedQuestIds: [],
       logs: [startLog],
+      brokenWalls: [],
     });
   },
 
@@ -184,6 +186,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       activeQuests: snapshot.activeQuests ?? [],
       completedQuestIds: snapshot.completedQuestIds ?? [],
       turnsTaken: snapshot.turnsTaken ?? 0,
+      brokenWalls: snapshot.brokenWalls ?? [],
       logs: ["💾 Resumed saved run!", ...snapshot.logs].slice(0, 30),
     });
   },
@@ -210,6 +213,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       enemiesByFloor: { [floor.id]: enemies },
       usedShrines: [],
       openedChests: [],
+      brokenWalls: [],
       exploredTiles: getRevealedKeys(floor.id, spawnX, spawnY, blueprint.visionRadius ?? 2),
       logs: [`⬇️ Descended into Endless Depth ${nextDepth}!`, ...logs].slice(0, 30),
     });
@@ -373,7 +377,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const before = snapOf(prev);
     set(
       resolveMove(
-        { ...prev, blueprint: prev.blueprint, player: prev.player },
+        { ...prev, blueprint: prev.blueprint, player: prev.player, brokenWalls: prev.brokenWalls },
         dx,
         dy,
       ),

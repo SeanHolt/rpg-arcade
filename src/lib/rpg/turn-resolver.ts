@@ -23,6 +23,7 @@ import { resolveMeleeBump } from "./melee-combat";
 import { getGearSellPrice } from "./gear-perks";
 import { FeatureFlagsMap } from "../feature-flag-defs";
 import { runEnemyTurnPhase } from "./enemy-ai";
+import { applyFloorTrapEffect } from "./hazard-helpers";
 
 export type TurnState = {
   blueprint: RpgBlueprint;
@@ -41,6 +42,7 @@ export type TurnState = {
   logs: string[];
   flags?: FeatureFlagsMap;
   turnsTaken: number;
+  brokenWalls: string[];
 };
 
 function isFloorCleared(
@@ -212,12 +214,6 @@ function computeMove(
 
   const floor = blueprint.floors.find((f) => f.id === currentFloorId);
   if (!floor) return {};
-
-  const tx = player.x + dx;
-  const ty = player.y + dy;
-  const tile = floor.grid.at(ty)?.at(tx);
-  if (!tile || tile === "#") return {};
-
   const pushLog = (msg: string) => [msg, ...logs].slice(0, 30);
   const reveal = (fId: string, px: number, py: number) =>
     Array.from(
@@ -226,6 +222,28 @@ function computeMove(
         ...getRevealedKeys(fId, px, py, blueprint.visionRadius ?? 2),
       ]),
     );
+
+  const tx = player.x + dx;
+  const ty = player.y + dy;
+  const tile = floor.grid.at(ty)?.at(tx);
+  if (!tile) return {};
+  const secretWall = (floor.secretWalls ?? []).find(
+    (sw) => sw.x === tx && sw.y === ty && !state.brokenWalls.includes(sw.id),
+  );
+  if (secretWall) {
+    return {
+      brokenWalls: [...state.brokenWalls, secretWall.id],
+      exploredTiles: reveal(currentFloorId, tx, ty),
+      turnsTaken: state.turnsTaken + 1,
+      logs: pushLog("💥 You smashed open a secret cracked wall!"),
+    };
+  }
+  const isBrokenSecretWall = (floor.secretWalls ?? []).some(
+    (sw) => sw.x === tx && sw.y === ty && state.brokenWalls.includes(sw.id),
+  );
+  if (!tile || (tile === "#" && !isBrokenSecretWall)) {
+    return { logs: pushLog("A solid wall blocks your path.") };
+  }
 
   // 1. NPC interaction
   if (state.flags?.npc_interactions !== false) {
@@ -394,6 +412,23 @@ function computeMove(
         ),
       };
     }
+  }
+  const trap = (floor.traps ?? []).find((tr) => tr.x === tx && tr.y === ty);
+  if (trap) {
+    const movedHero = { ...player, x: tx, y: ty };
+    const trapRes = applyFloorTrapEffect(movedHero, trap);
+    const nextPlayer = tickPlayerTurn(trapRes.updatedPlayer);
+    return {
+      status: nextPlayer.hp === 0 ? "defeat" : "playing",
+      player: nextPlayer,
+      exploredTiles: reveal(currentFloorId, tx, ty),
+      turnsTaken: state.turnsTaken + 1,
+      logs: pushLog(
+        nextPlayer.hp === 0
+          ? `💀 ${trapRes.trapLog} You perished!`
+          : trapRes.trapLog,
+      ),
+    };
   }
   // 6. Standard move
   return {

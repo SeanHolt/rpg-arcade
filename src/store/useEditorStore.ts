@@ -35,6 +35,12 @@ type EditorStore = {
   selectedNpcId: string | null;
   activeVariantIndex: number;
   activePropSprite: string;
+  activeTrapType: "spikes" | "poison_vent" | "lava_crack";
+  activeTrapDamage: number;
+
+  toggleFloorTrap: (x: number, y: number) => void;
+  setActiveTrapConfig: (trapType: "spikes" | "poison_vent" | "lava_crack", damage: number) => void;
+  toggleSecretWall: (x: number, y: number) => void;
   rotateActiveFloor: () => void;
   flipActiveFloor: () => void;
   applyRoomPrefab: (prefab: RoomPrefabId) => void;
@@ -91,6 +97,62 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   selectedNpcId: null,
   activeVariantIndex: 0,
   activePropSprite: "🔥",
+  activeTrapType: "spikes",
+  activeTrapDamage: 8,
+
+  setActiveTrapConfig: (trapType, damage) =>
+    set({ activeTrapType: trapType, activeTrapDamage: damage }),
+
+  toggleSecretWall: (x, y) => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) => {
+          if (f.id !== activeFloorId) return f;
+          if (f.grid.at(y)?.at(x) !== "#") return f;
+          const existing = f.secretWalls ?? [];
+          const hasAtCell = existing.some((sw) => sw.x === x && sw.y === y);
+          return {
+            ...f,
+            secretWalls: hasAtCell
+              ? existing.filter((sw) => !(sw.x === x && sw.y === y))
+              : [...existing, { id: `sw-${Date.now().toString(36)}-${x}-${y}`, x, y }],
+          };
+        }),
+      },
+    });
+  },
+
+  toggleFloorTrap: (x, y) => {
+    const { blueprint, activeFloorId, activeTrapType, activeTrapDamage } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) => {
+          if (f.id !== activeFloorId) return f;
+          if (f.grid.at(y)?.at(x) === "#") return f;
+          const existing = f.traps ?? [];
+          const hasAtCell = existing.some((tr) => tr.x === x && tr.y === y);
+          return {
+            ...f,
+            traps: hasAtCell
+              ? existing.filter((tr) => !(tr.x === x && tr.y === y))
+              : [
+                  ...existing,
+                  {
+                    id: `trap-${Date.now().toString(36)}-${x}-${y}`,
+                    x,
+                    y,
+                    trapType: activeTrapType,
+                    damage: activeTrapDamage,
+                  },
+                ],
+          };
+        }),
+      },
+    });
+  },
   rotateActiveFloor: () => {
     const { blueprint, activeFloorId } = get();
     set({

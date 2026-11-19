@@ -70,6 +70,7 @@ export type SerializedRunSnapshot = {
   activeQuests?: ActiveQuestProgress[];
   completedQuestIds?: string[];
   turnsTaken?: number;
+  brokenWalls?: string[];
 };
 export type ActiveQuestProgress = {
   questId: string;

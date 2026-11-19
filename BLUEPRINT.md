@@ -93,6 +93,10 @@
 - `src/lib/rpg/floor-transforms.ts` — Pure floor transformation & room stamping utilities (`rotateFloor90`, `flipFloorHorizontal`, `stampRoomPrefab`) that keep tiles, entities, props, variants, and portal coordinates synchronized.
 - `src/components/studio/RoomToolsCard.tsx` — Visual Studio card for rotating/flipping floors, stamping room prefabs (`Boss Arena`, `Treasure Vault`, `Shrine Sanctuary`), and placing/configuring Portal Runes (`🌀`).
 - `src/components/studio/RoomToolsCard.tsx` — Visual Studio card for rotating/flipping the active floor, stamping 5×5 interior room prefabs (`Boss Arena`, `Treasure Vault`, `Shrine Sanctuary`), and adding/editing/removing paired or one-way Portal Runes (`🌀`).
+- `src/lib/rpg/schema.ts` — Added `secretWalls` (`{ id, x, y, hint? }[]`) and `traps` (`{ id, x, y, trapType: "spikes" | "poison_vent" | "lava_crack", damage }[]`) to `FloorSchema`.
+- `src/lib/rpg/hazard-helpers.ts` — Pure helpers resolving secret wall bashing (`brokenWallIds`) and floor hazard effects (Spike damage, Poison Vent `venom` proc, Lava Crack `fire` proc, with **Boots** 50% damage reduction & status immunity).
+- `src/components/studio/HazardsCard.tsx` — Visual Studio tool to paint/toggle **Secret Breakable Walls** (`🧱`) and **Floor Traps** (`⚙️` Spikes, `🧪` Poison Vents, `🌋` Lava Cracks).
+- `src/components/studio/HazardsCard.tsx` — Visual Studio tool to paint/toggle **Secret Breakable Walls** (`🧱`) on wall tiles and **Floor Traps** (`⚙️` Spikes, `🧪` Poison Vents, `🌋` Lava Cracks) with configurable damage on floor tiles.
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -126,6 +130,7 @@
 - [x] **Phase 37:** 2-Frame Idle Sprite Animations & PNG Sprite Sheet Slicer completed.
 - [x] **Phase 38:** Multi-Variant Wall & Floor Tiles (4 Variants) + Non-Blocking Decorative Props Layer completed (`tile-resolver.ts`, `DungeonGrid.tsx`, `TileVariantsCard.tsx`).
 - [x] **Phase 39:** Room Prefab Stamps, Floor Transform Tools & Paired/One-Way Portal Runes completed (`floor-transforms.ts`, `RoomToolsCard.tsx`, portal rendering in `StudioGrid.tsx` & `DungeonGrid.tsx`).
-- [ ] **Phase 40:** Secret Breakable Walls & Floor Traps/Hazards *(Spikes, Poison Vents, Lava Cracks)* *(Next)*
+- [x] **Phase 40:** Secret Breakable Walls & Floor Traps/Hazards *(Spikes, Poison Vents, Lava Cracks)* completed (`hazard-helpers.ts`, `DungeonGrid.tsx`, `HazardsCard.tsx`, `StudioGrid.tsx`).
 - [ ] **Phase 41:** Interactive Lore Signs, Riddles & Push-Block / Pressure Plate / Lever Puzzles
+
 

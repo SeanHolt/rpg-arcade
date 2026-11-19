@@ -11,20 +11,23 @@ export type BrushTool =
   | "chest"
   | "npc"
   | "erase_entity"
-  | "prop";
+  | "prop"
+  | "secret_wall"
+  | "trap";
 
 export function createBlankGrid(size: number): string[] {
   const topBottom = "#".repeat(size);
   const middle = "#" + ".".repeat(size - 2) + "#";
   return Array.from({ length: size }, (_, idx) =>
-    idx === 0 || idx === size - 1 ? topBottom : middle
+    idx === 0 || idx === size - 1 ? topBottom : middle,
   );
 }
 
 export function createDefaultBlueprint(): RpgBlueprint {
   return {
     title: "My Custom Dungeon",
-    description: "Explore the halls, gather strength, and defeat the dungeon boss.",
+    description:
+      "Explore the halls, gather strength, and defeat the dungeon boss.",
     difficulty: "Normal",
     theme: "crypt",
     customSprites: {},
@@ -47,7 +50,7 @@ export function createDefaultBlueprint(): RpgBlueprint {
         name: "Floor 1: Entrance Hall",
         grid: createBlankGrid(10),
         enemies: [
-           {
+          {
             id: "boss-1",
             name: "Dungeon Overlord",
             sprite: "👑",
@@ -70,7 +73,11 @@ export function createDefaultBlueprint(): RpgBlueprint {
   };
 }
 
-export function resizeFloorGrid(floor: RpgFloor, width: number, height: number): RpgFloor {
+export function resizeFloorGrid(
+  floor: RpgFloor,
+  width: number,
+  height: number,
+): RpgFloor {
   const w = Math.max(8, Math.min(24, Math.floor(width)));
   const h = Math.max(8, Math.min(24, Math.floor(height)));
   const oldW = floor.grid.at(0)?.length ?? 0;
@@ -95,11 +102,21 @@ export function resizeFloorGrid(floor: RpgFloor, width: number, height: number):
   return {
     ...floor,
     grid: nextGrid,
-    enemies: floor.enemies.filter((e) => e.x > 0 && e.x < w - 1 && e.y > 0 && e.y < h - 1),
-    chests: (floor.chests ?? []).filter((c) => c.x > 0 && c.x < w - 1 && c.y > 0 && c.y < h - 1),
-    npcs: (floor.npcs ?? []).filter((n) => n.x > 0 && n.x < w - 1 && n.y > 0 && n.y < h - 1),
+    enemies: floor.enemies.filter(
+      (e) => e.x > 0 && e.x < w - 1 && e.y > 0 && e.y < h - 1,
+    ),
+    chests: (floor.chests ?? []).filter(
+      (c) => c.x > 0 && c.x < w - 1 && c.y > 0 && c.y < h - 1,
+    ),
+    npcs: (floor.npcs ?? []).filter(
+      (n) => n.x > 0 && n.x < w - 1 && n.y > 0 && n.y < h - 1,
+    ),
     stairways: floor.stairways.filter(
-      (st) => st.from.x > 0 && st.from.x < w - 1 && st.from.y > 0 && st.from.y < h - 1
+      (st) =>
+        st.from.x > 0 &&
+        st.from.x < w - 1 &&
+        st.from.y > 0 &&
+        st.from.y < h - 1,
     ),
   };
 }

@@ -184,7 +184,7 @@ export function PixelArtModal({ title, initialSprite, onSave, onClose }: Props) 
                   if (isDrawingRef.current) applyAtCell(idx, false);
                 }}
                 style={{ backgroundColor: hex || undefined }}
-                className="h-[18px] w-[18px] cursor-crosshair border-[0.5px] border-zinc-800/70"
+                className="h-4.5 w-4.5 cursor-crosshair border-[0.5px] border-zinc-800/70"
               />
             ))}
           </div>

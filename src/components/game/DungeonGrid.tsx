@@ -16,6 +16,7 @@ type Props = {
   enemies: ActiveEnemy[];
   openedChests: string[];
   usedShrines: string[];
+  brokenWalls?: string[];
   onAttackEnemy?: (enemyId: string) => void;
 };
 
@@ -29,6 +30,7 @@ export function DungeonGrid({
   enemies,
   openedChests,
   usedShrines,
+  brokenWalls = [],
   onAttackEnemy,
 }: Props) {
   const theme = DUNGEON_THEMES[themeId ?? "crypt"] ?? DUNGEON_THEMES.crypt;
@@ -63,6 +65,9 @@ export function DungeonGrid({
           );
           const prop = (floor.props ?? []).find((p) => p.x === x && p.y === y);
           const portal = (floor.portals ?? []).find((pt) => pt.x === x && pt.y === y);
+          const trap = (floor.traps ?? []).find((tr) => tr.x === x && tr.y === y);
+          const secretWall = (floor.secretWalls ?? []).find((sw) => sw.x === x && sw.y === y);
+          const isBrokenWall = Boolean(secretWall && brokenWalls.includes(secretWall.id));
 
           const dist = Math.abs(player.x - x) + Math.abs(player.y - y);
           const canRangedHit =
@@ -71,15 +76,23 @@ export function DungeonGrid({
             dist >= 1 &&
             dist <= player.range;
 
+          const effectiveTile = isBrokenWall ? "." : tile;
           const baseBg =
-            tile === "#"
+            effectiveTile === "#"
               ? theme.wallBg
-              : tile === "S"
+              : effectiveTile === "S"
                 ? theme.stairsBg
-                : tile === "H"
+                : effectiveTile === "H"
                   ? theme.shrineBg
                   : theme.floorBg;
-          const baseSprite = resolveTileSprite(tile, x, y, floor, customSprites);
+          const baseSprite = resolveTileSprite(effectiveTile, x, y, floor, customSprites);
+
+          const trapIcon =
+            trap?.trapType === "poison_vent"
+              ? "🧪"
+              : trap?.trapType === "lava_crack"
+                ? "🌋"
+                : "⚙️";
 
           return (
             <div
@@ -96,7 +109,7 @@ export function DungeonGrid({
                 </div>
               )}
 
-              {prop && !isPlayer && !enemy && !npc && !chest && tile !== "#" && (
+              {prop && !isPlayer && !enemy && !npc && !chest && effectiveTile !== "#" && (
                 <div className="pointer-events-none relative z-10 flex items-center justify-center">
                   <SpriteDisplay
                     sprite={prop.sprite}
@@ -141,9 +154,17 @@ export function DungeonGrid({
                   >
                     🌀
                   </span>
-                ) : tile === "S" ? (
+                ) : trap && effectiveTile !== "#" ? (
+                  <span title={`Trap (${trap.damage} dmg)`} className="text-sm opacity-90">
+                    {trapIcon}
+                  </span>
+                ) : secretWall && !isBrokenWall ? (
+                  <span title="Cracked Wall" className="text-xs opacity-40">
+                    🧱
+                  </span>
+                ) : effectiveTile === "S" ? (
                   <SpriteDisplay sprite={customSprites?.stairs ?? theme.stairsIcon} alt="Stairs" />
-                ) : tile === "H" && !usedShrines.includes(tileKey) ? (
+                ) : effectiveTile === "H" && !usedShrines.includes(tileKey) ? (
                   <SpriteDisplay
                     sprite={customSprites?.shrine ?? theme.shrineIcon}
                     frame2={customSprites?.shrineFrame2}
