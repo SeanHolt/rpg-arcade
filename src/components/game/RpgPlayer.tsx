@@ -310,18 +310,15 @@ export function RpgPlayer({
                     <div className="mx-auto w-fit">
                         <DungeonGrid
                             floor={currentFloor}
-                            player={player}
-                            enemies={livingEnemies}
-                            usedShrines={usedShrines}
-                            openedChests={openedChests}
-                            exploredTiles={exploredTiles}
-                            fogOfWar={Boolean(liveBlueprint.fogOfWar)}
-                            visionRadius={liveBlueprint.visionRadius ?? 2}
                             themeId={liveBlueprint.theme}
                             customSprites={liveBlueprint.customSprites}
-                            onMove={movePlayer}
-                            onRangedAttack={rangedAttack}
-                            onUseSkill={triggerClassSkill}
+                            fogOfWar={Boolean(liveBlueprint.fogOfWar)}
+                            exploredTiles={exploredTiles}
+                            player={player}
+                            enemies={livingEnemies}
+                            openedChests={openedChests}
+                            usedShrines={usedShrines}
+                            onAttackEnemy={(enemyId) => rangedAttack(enemyId)}
                         />
                     </div>
                 </div>

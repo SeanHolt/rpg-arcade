@@ -8,7 +8,9 @@ export const ItemTypeEnum = z.enum([
   "ring",
 ]);
 export type RpgItemType = z.infer<typeof ItemTypeEnum>;
-export const ElementTypeSchema = z.enum(["none", "fire", "ice", "venom"]).default("none");
+export const ElementTypeSchema = z
+  .enum(["none", "fire", "ice", "venom"])
+  .default("none");
 export const EnemySpecialSchema = z.object({
   name: z.string().min(1).max(32),
   multiplier: z.number().min(1.2).max(3.5).default(2),
@@ -23,7 +25,7 @@ export const StarterItemSchema = z.object({
   itemType: ItemTypeEnum.default("weapon"),
   itemName: z.string().min(1).max(40),
   value: z.number().int().min(1).max(999),
-  element: ElementTypeSchema
+  element: ElementTypeSchema,
 });
 
 export const ClassSkillSchema = z.object({
@@ -136,7 +138,13 @@ export const MusicNoteEnum = z.enum([
   "B4",
   "C5",
 ]);
-
+export const FloorPropSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  sprite: SpriteFieldSchema,
+  spriteFrame2: SpriteFieldSchema.optional(),
+});
 export const FloorMusicSchema = z.object({
   tempoBpm: z.number().int().min(70).max(200).default(120),
   waveform: z.enum(["triangle", "square", "sawtooth"]).default("triangle"),
@@ -159,6 +167,10 @@ export const FloorSchema = z
       )
       .min(5, "Map height must be at least 5 tiles")
       .max(40, "Map height cannot exceed 40 tiles"),
+    tileVariants: z
+      .record(z.string(), z.number().int().min(0).max(3))
+      .optional(),
+    props: z.array(FloorPropSchema).max(60).optional(),
     enemies: z.array(EnemySchema).max(50).default([]),
     chests: z.array(ChestSchema).max(30).default([]),
     npcs: z.array(NpcSchema).max(20).default([]),
@@ -176,14 +188,16 @@ export const FloorSchema = z
 export const CustomSpritesSchema = z
   .object({
     wall: SpriteFieldSchema.optional(),
+    wallVariants: z.array(SpriteFieldSchema).max(4).optional(),
     floor: SpriteFieldSchema.optional(),
+    floorVariants: z.array(SpriteFieldSchema).max(4).optional(),
     stairs: SpriteFieldSchema.optional(),
     shrine: SpriteFieldSchema.optional(),
     shrineFrame2: SpriteFieldSchema.optional(),
     chest: SpriteFieldSchema.optional(),
   })
   .default({});
-  export const RpgBlueprintSchema = z
+export const RpgBlueprintSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters").max(80),
     description: z
@@ -320,3 +334,4 @@ export type RpgClassSkill = z.infer<typeof ClassSkillSchema>;
 export type RpgEnemySpecial = z.infer<typeof EnemySpecialSchema>;
 export type RpgMusicNote = z.infer<typeof MusicNoteEnum>;
 export type RpgFloorMusic = z.infer<typeof FloorMusicSchema>;
+export type RpgFloorProp = z.infer<typeof FloorPropSchema>;
