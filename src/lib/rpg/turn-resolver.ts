@@ -7,7 +7,11 @@ import type {
   PlayerRuntimeState,
   PotionItem,
 } from "./runtime-types";
-import { applyXpAndLevel, getRevealedKeys, recalculateStats } from "./combat-helpers";
+import {
+  applyXpAndLevel,
+  getRevealedKeys,
+  recalculateStats,
+} from "./combat-helpers";
 import { incrementQuestProgress } from "./quest-helpers";
 import {
   applyElementalHit,
@@ -43,11 +47,13 @@ function isFloorCleared(
   isEndless: boolean,
   floor: RpgBlueprint["floors"][number],
   enemies: ActiveEnemy[],
-  openedChests: string[]
+  openedChests: string[],
 ): boolean {
   if (!isEndless) return enemies.some((e) => e.isBoss && e.currentHp <= 0);
   const allDead = enemies.every((e) => e.currentHp <= 0);
-  const allChests = (floor.chests ?? []).every((c) => openedChests.includes(c.id));
+  const allChests = (floor.chests ?? []).every((c) =>
+    openedChests.includes(c.id),
+  );
   return allDead && allChests;
 }
 
@@ -55,10 +61,18 @@ function tickPlayerTurn(player: PlayerRuntimeState): PlayerRuntimeState {
   const nextCd = Math.max(0, player.skillCooldown - 1);
   const { dotDamage, nextStatuses } = tickDamageOverTime(player.statuses ?? []);
   const nextHp = dotDamage > 0 ? Math.max(1, player.hp - dotDamage) : player.hp;
-  return { ...player, hp: nextHp, skillCooldown: nextCd, statuses: nextStatuses };
+  return {
+    ...player,
+    hp: nextHp,
+    skillCooldown: nextCd,
+    statuses: nextStatuses,
+  };
 }
 
-function computeRangedAttack(state: TurnState, enemyId?: string): Partial<TurnState> {
+function computeRangedAttack(
+  state: TurnState,
+  enemyId?: string,
+): Partial<TurnState> {
   const { blueprint, currentFloorId, player, enemiesByFloor, logs } = state;
   if (player.combatType !== "ranged") return {};
 
@@ -71,32 +85,48 @@ function computeRangedAttack(state: TurnState, enemyId?: string): Partial<TurnSt
   });
 
   if (inRange.length === 0) {
-    return { logs: [`🏹 No enemies within ${player.range} tiles!`, ...logs].slice(0, 30) };
+    return {
+      logs: [`🏹 No enemies within ${player.range} tiles!`, ...logs].slice(
+        0,
+        30,
+      ),
+    };
   }
 
   const target =
     (enemyId ? inRange.find((e) => e.id === enemyId) : undefined) ??
-    inRange.sort(
-      (a, b) =>
-        Math.abs(a.x - player.x) +
-        Math.abs(a.y - player.y) -
-        (Math.abs(b.x - player.x) + Math.abs(b.y - player.y))
-    ).at(0)!;
+    inRange
+      .sort(
+        (a, b) =>
+          Math.abs(a.x - player.x) +
+          Math.abs(a.y - player.y) -
+          (Math.abs(b.x - player.x) + Math.abs(b.y - player.y)),
+      )
+      .at(0)!;
 
   const dmg = Math.max(1, player.atk - target.def);
   const nextHp = Math.max(0, target.currentHp - dmg);
 
   if (nextHp === 0) {
     const updatedEnemies = floorEnemies.map((e) =>
-      e.id === target.id ? { ...e, currentHp: 0, statuses: [] } : e
+      e.id === target.id ? { ...e, currentHp: 0, statuses: [] } : e,
     );
-    const { updatedPlayer, levelMsg } = applyXpAndLevel(player, target.xpReward);
+    const { updatedPlayer, levelMsg } = applyXpAndLevel(
+      player,
+      target.xpReward,
+    );
     const { updatedQuests, readyMessages } = incrementQuestProgress(
       state.activeQuests,
-      "kill_enemies"
+      "kill_enemies",
     );
     const cleared = Boolean(
-      floor && isFloorCleared(state.isEndless, floor, updatedEnemies, state.openedChests)
+      floor &&
+      isFloorCleared(
+        state.isEndless,
+        floor,
+        updatedEnemies,
+        state.openedChests,
+      ),
     );
 
     return {
@@ -116,24 +146,33 @@ function computeRangedAttack(state: TurnState, enemyId?: string): Partial<TurnSt
   }
 
   const activeElement =
-    state.flags?.elemental_effects === false ? "none" : getEffectivePlayerElement(player);
+    state.flags?.elemental_effects === false
+      ? "none"
+      : getEffectivePlayerElement(player);
   const hitFx = applyElementalHit(target.statuses ?? [], activeElement);
   const freezeCheck = consumeFreeze(hitFx.nextStatuses);
   const updatedEnemies = floorEnemies.map((e) =>
-    e.id === target.id ? { ...e, currentHp: nextHp, statuses: freezeCheck.nextStatuses } : e
+    e.id === target.id
+      ? { ...e, currentHp: nextHp, statuses: freezeCheck.nextStatuses }
+      : e,
   );
 
   const dist = Math.abs(target.x - player.x) + Math.abs(target.y - player.y);
   if (dist === 1 && !freezeCheck.wasFrozen) {
     const counter = Math.max(1, target.atk - player.def);
     const nextPlayerHp = Math.max(0, player.hp - counter);
-    const enemyEl = state.flags?.elemental_effects === false ? "none" : target.element;
+    const enemyEl =
+      state.flags?.elemental_effects === false ? "none" : target.element;
     const enemyFx = applyElementalHit(player.statuses ?? [], enemyEl);
 
     return {
       status: nextPlayerHp === 0 ? "defeat" : "playing",
       enemiesByFloor: { ...enemiesByFloor, [currentFloorId]: updatedEnemies },
-      player: tickPlayerTurn({ ...player, hp: nextPlayerHp, statuses: enemyFx.nextStatuses }),
+      player: tickPlayerTurn({
+        ...player,
+        hp: nextPlayerHp,
+        statuses: enemyFx.nextStatuses,
+      }),
       turnsTaken: state.turnsTaken + 1,
       logs: [
         `🏹 Shot ${target.name} (${dmg} dmg).${hitFx.note} Countered for ${counter} dmg!${enemyFx.note}`,
@@ -153,7 +192,11 @@ function computeRangedAttack(state: TurnState, enemyId?: string): Partial<TurnSt
   };
 }
 
-function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnState> {
+function computeMove(
+  state: TurnState,
+  dx: number,
+  dy: number,
+): Partial<TurnState> {
   const {
     blueprint,
     currentFloorId,
@@ -178,20 +221,28 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
   const pushLog = (msg: string) => [msg, ...logs].slice(0, 30);
   const reveal = (fId: string, px: number, py: number) =>
     Array.from(
-      new Set([...exploredTiles, ...getRevealedKeys(fId, px, py, blueprint.visionRadius ?? 2)])
+      new Set([
+        ...exploredTiles,
+        ...getRevealedKeys(fId, px, py, blueprint.visionRadius ?? 2),
+      ]),
     );
 
   // 1. NPC interaction
   if (state.flags?.npc_interactions !== false) {
     const npc = (floor.npcs ?? []).find((n) => n.x === tx && n.y === ty);
     if (npc) {
-      return { activeNpcId: npc.id, logs: pushLog(`💬 Spoke with ${npc.name}.`) };
+      return {
+        activeNpcId: npc.id,
+        logs: pushLog(`💬 Spoke with ${npc.name}.`),
+      };
     }
   }
 
   // 2. Melee bump enemy
   const floorEnemies = enemiesByFloor[currentFloorId] ?? [];
-  const enemyIdx = floorEnemies.findIndex((e) => e.currentHp > 0 && e.x === tx && e.y === ty);
+  const enemyIdx = floorEnemies.findIndex(
+    (e) => e.currentHp > 0 && e.x === tx && e.y === ty,
+  );
   if (enemyIdx !== -1) {
     return resolveMeleeBump(
       state,
@@ -199,14 +250,15 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
       tx,
       ty,
       reveal,
-      (enemies, opened) => isFloorCleared(state.isEndless, floor, enemies, opened),
-      tickPlayerTurn
+      (enemies, opened) =>
+        isFloorCleared(state.isEndless, floor, enemies, opened),
+      tickPlayerTurn,
     );
   }
 
   // 3. Chest
   const chest = (floor.chests ?? []).find(
-    (c) => c.x === tx && c.y === ty && !openedChests.includes(c.id)
+    (c) => c.x === tx && c.y === ty && !openedChests.includes(c.id),
   );
   if (chest) {
     const nextPotions = [...potions];
@@ -215,7 +267,11 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
     let msg = "";
 
     if (chest.itemType === "potion") {
-      nextPotions.push({ id: `${chest.id}-${Date.now()}`, name: chest.itemName, healAmount: chest.value });
+      nextPotions.push({
+        id: `${chest.id}-${Date.now()}`,
+        name: chest.itemName,
+        healAmount: chest.value,
+      });
       msg = `📦 Found ${chest.itemName} (+${chest.value} HP potion)!`;
     } else {
       const item: GearItem = {
@@ -241,7 +297,10 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
           : `📦 Looted & equipped ${item.name} (+${item.bonus})!`;
       } else {
         const sellGold = getGearSellPrice(item);
-        updatedPlayer = { ...updatedPlayer, gold: updatedPlayer.gold + sellGold };
+        updatedPlayer = {
+          ...updatedPlayer,
+          gold: updatedPlayer.gold + sellGold,
+        };
         msg = `📦 Found ${item.name} (weaker) — auto-sold for +${sellGold}g!`;
       }
     }
@@ -249,9 +308,14 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
     const nextOpened = [...openedChests, chest.id];
     const { updatedQuests, readyMessages } = incrementQuestProgress(
       state.activeQuests,
-      "open_chests"
+      "open_chests",
     );
-    const cleared = isFloorCleared(state.isEndless, floor, floorEnemies, nextOpened);
+    const cleared = isFloorCleared(
+      state.isEndless,
+      floor,
+      floorEnemies,
+      nextOpened,
+    );
 
     return {
       status: cleared ? "victory" : "playing",
@@ -272,7 +336,9 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
 
   // 4. Stairway
   if (tile === "S") {
-    const stairs = floor.stairways.find((s) => s.from.x === tx && s.from.y === ty);
+    const stairs = floor.stairways.find(
+      (s) => s.from.x === tx && s.from.y === ty,
+    );
     if (stairs) {
       const dest = blueprint.floors.find((f) => f.id === stairs.toFloorId);
       return {
@@ -280,7 +346,9 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
         exploredTiles: reveal(stairs.toFloorId, stairs.to.x, stairs.to.y),
         turnsTaken: state.turnsTaken + 1,
         player: tickPlayerTurn({ ...player, x: stairs.to.x, y: stairs.to.y }),
-        logs: pushLog(`🪜 ${stairs.label ?? `Moved to ${dest?.name ?? stairs.toFloorId}`}.`),
+        logs: pushLog(
+          `🪜 ${stairs.label ?? `Moved to ${dest?.name ?? stairs.toFloorId}`}.`,
+        ),
       };
     }
   }
@@ -288,16 +356,45 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
   // 5. Healing shrine
   const shrineKey = `${currentFloorId}:${tx},${ty}`;
   if (tile === "H" && !usedShrines.includes(shrineKey)) {
-    const healedHp = Math.min(player.maxHp, player.hp + Math.ceil(player.maxHp * 0.5));
+    const healedHp = Math.min(
+      player.maxHp,
+      player.hp + Math.ceil(player.maxHp * 0.5),
+    );
     return {
       usedShrines: [...usedShrines, shrineKey],
       exploredTiles: reveal(currentFloorId, tx, ty),
-      player: tickPlayerTurn({ ...player, x: tx, y: ty, hp: healedHp, statuses: [] }),
+      player: tickPlayerTurn({
+        ...player,
+        x: tx,
+        y: ty,
+        hp: healedHp,
+        statuses: [],
+      }),
       turnsTaken: state.turnsTaken + 1,
-      logs: pushLog(`✨ Rested at Healing Shrine (+${healedHp - player.hp} HP & cleansed statuses)!`),
+      logs: pushLog(
+        `✨ Rested at Healing Shrine (+${healedHp - player.hp} HP & cleansed statuses)!`,
+      ),
     };
   }
-
+  const portal = (floor.portals ?? []).find((pt) => pt.x === tx && pt.y === ty);
+  if (portal) {
+    const destTile = floor.grid.at(portal.targetY)?.at(portal.targetX);
+    if (destTile && destTile !== "#") {
+      const nextPlayer = tickPlayerTurn({
+        ...player,
+        x: portal.targetX,
+        y: portal.targetY,
+      });
+      return {
+        player: nextPlayer,
+        exploredTiles: reveal(currentFloorId, portal.targetX, portal.targetY),
+        turnsTaken: state.turnsTaken + 1,
+        logs: pushLog(
+          `🌀 Warped through ${portal.color.toUpperCase()} Portal to (${portal.targetX}, ${portal.targetY})!`,
+        ),
+      };
+    }
+  }
   // 6. Standard move
   return {
     exploredTiles: reveal(currentFloorId, tx, ty),
@@ -308,7 +405,7 @@ function computeMove(state: TurnState, dx: number, dy: number): Partial<TurnStat
 
 function applyEnemyAiPhase(
   state: TurnState,
-  result: Partial<TurnState>
+  result: Partial<TurnState>,
 ): Partial<TurnState> {
   const nextStatus = result.status ?? state.status;
   if (nextStatus !== "playing") return result;
@@ -327,23 +424,34 @@ function applyEnemyAiPhase(
     state.isEndless,
     floor,
     ai.updatedEnemies,
-    result.openedChests ?? state.openedChests
+    result.openedChests ?? state.openedChests,
   );
 
   return {
     ...result,
-    status: ai.playerDefeated ? "defeat" : clearedAfterDot ? "victory" : "playing",
+    status: ai.playerDefeated
+      ? "defeat"
+      : clearedAfterDot
+        ? "victory"
+        : "playing",
     enemiesByFloor: { ...enemiesMap, [activeFloorId]: ai.updatedEnemies },
     player: ai.updatedPlayer,
     logs: [...ai.aiLogs, ...(result.logs ?? state.logs)].slice(0, 30),
   };
 }
 
-export function resolveRangedAttack(state: TurnState, enemyId?: string): Partial<TurnState> {
+export function resolveRangedAttack(
+  state: TurnState,
+  enemyId?: string,
+): Partial<TurnState> {
   return applyEnemyAiPhase(state, computeRangedAttack(state, enemyId));
 }
 
-export function resolveMove(state: TurnState, dx: number, dy: number): Partial<TurnState> {
+export function resolveMove(
+  state: TurnState,
+  dx: number,
+  dy: number,
+): Partial<TurnState> {
   const res = computeMove(state, dx, dy);
   if (!res.turnsTaken) return res;
   return applyEnemyAiPhase(state, res);

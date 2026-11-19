@@ -62,6 +62,7 @@ export function DungeonGrid({
             (c) => c.x === x && c.y === y && !openedChests.includes(c.id)
           );
           const prop = (floor.props ?? []).find((p) => p.x === x && p.y === y);
+          const portal = (floor.portals ?? []).find((pt) => pt.x === x && pt.y === y);
 
           const dist = Math.abs(player.x - x) + Math.abs(player.y - y);
           const canRangedHit =
@@ -127,6 +128,19 @@ export function DungeonGrid({
                   />
                 ) : chest ? (
                   <SpriteDisplay sprite={customSprites?.chest ?? theme.chestIcon} alt="Chest" />
+                ) : portal ? (
+                  <span
+                    title={`Portal → (${portal.targetX}, ${portal.targetY})`}
+                    className={`text-lg drop-shadow ${
+                      portal.color === "purple"
+                        ? "text-purple-400"
+                        : portal.color === "amber"
+                          ? "text-amber-400"
+                          : "text-cyan-400"
+                    }`}
+                  >
+                    🌀
+                  </span>
                 ) : tile === "S" ? (
                   <SpriteDisplay sprite={customSprites?.stairs ?? theme.stairsIcon} alt="Stairs" />
                 ) : tile === "H" && !usedShrines.includes(tileKey) ? (

@@ -150,6 +150,15 @@ export const FloorMusicSchema = z.object({
   waveform: z.enum(["triangle", "square", "sawtooth"]).default("triangle"),
   notes: z.array(MusicNoteEnum).length(8),
 });
+export const PortalRuneSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  targetX: z.number().int().min(0).max(49),
+  targetY: z.number().int().min(0).max(49),
+  color: z.enum(["cyan", "purple", "amber"]).default("cyan"),
+  oneWay: z.boolean().default(false),
+});
 export const FloorSchema = z
   .object({
     id: z.string().min(1).max(40),
@@ -171,6 +180,7 @@ export const FloorSchema = z
       .record(z.string(), z.number().int().min(0).max(3))
       .optional(),
     props: z.array(FloorPropSchema).max(60).optional(),
+    portals: z.array(PortalRuneSchema).max(12).optional(),
     enemies: z.array(EnemySchema).max(50).default([]),
     chests: z.array(ChestSchema).max(30).default([]),
     npcs: z.array(NpcSchema).max(20).default([]),
@@ -335,3 +345,4 @@ export type RpgEnemySpecial = z.infer<typeof EnemySpecialSchema>;
 export type RpgMusicNote = z.infer<typeof MusicNoteEnum>;
 export type RpgFloorMusic = z.infer<typeof FloorMusicSchema>;
 export type RpgFloorProp = z.infer<typeof FloorPropSchema>;
+export type RpgPortalRune = z.infer<typeof PortalRuneSchema>;
