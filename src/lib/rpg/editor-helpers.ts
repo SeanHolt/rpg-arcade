@@ -10,7 +10,8 @@ export type BrushTool =
   | "boss"
   | "chest"
   | "npc"
-  | "erase_entity";
+  | "erase_entity"
+  | "prop";
 
 export function createBlankGrid(size: number): string[] {
   const topBottom = "#".repeat(size);

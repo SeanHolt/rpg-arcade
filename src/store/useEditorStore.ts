@@ -26,7 +26,17 @@ type EditorStore = {
   selectedEnemyId: string | null;
   selectedChestId: string | null;
   selectedNpcId: string | null;
-
+  activeVariantIndex: number;
+  activePropSprite: string;
+  setActiveVariantIndex: (idx: number) => void;
+  setActivePropSprite: (sprite: string) => void;
+  setTileVariantSprite: (
+    type: "wall" | "floor",
+    slotIndex: number,
+    spriteUrl?: string,
+  ) => void;
+  paintTileVariant: (x: number, y: number) => void;
+  toggleFloorProp: (x: number, y: number) => void;
   loadBlueprint: (bp?: RpgBlueprint) => void;
   setActiveFloor: (floorId: string) => void;
   setActiveTool: (tool: BrushTool) => void;
@@ -66,7 +76,75 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   selectedEnemyId: "boss-1",
   selectedChestId: null,
   selectedNpcId: null,
+  activeVariantIndex: 0,
+  activePropSprite: "🔥",
+  setActiveVariantIndex: (idx) => set({ activeVariantIndex: idx }),
+  setActivePropSprite: (sprite) => set({ activePropSprite: sprite }),
 
+  setTileVariantSprite: (type, slotIndex, spriteUrl) => {
+    const { blueprint } = get();
+    const cs = blueprint.customSprites ?? {};
+    if (slotIndex === 0) {
+      set({
+        blueprint: {
+          ...blueprint,
+          customSprites: { ...cs, [type]: spriteUrl },
+        },
+      });
+      return;
+    }
+    const key = type === "wall" ? "wallVariants" : "floorVariants";
+    const arr = [...(cs[key] ?? [])];
+    arr[slotIndex - 1] = spriteUrl ?? "";
+    set({
+      blueprint: {
+        ...blueprint,
+        customSprites: { ...cs, [key]: arr.filter(Boolean) },
+      },
+    });
+  },
+
+  paintTileVariant: (x, y) => {
+    const { blueprint, activeFloorId, activeVariantIndex } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) => {
+          if (f.id !== activeFloorId) return f;
+          const nextVariants = { ...(f.tileVariants ?? {}) };
+          if (activeVariantIndex === 0) delete nextVariants[`${x},${y}`];
+          else nextVariants[`${x},${y}`] = activeVariantIndex;
+          return { ...f, tileVariants: nextVariants };
+        }),
+      },
+    });
+  },
+
+  toggleFloorProp: (x, y) => {
+    const { blueprint, activeFloorId, activePropSprite } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) => {
+          if (f.id !== activeFloorId) return f;
+          const existing = f.props ?? [];
+          const hasAtCell = existing.some((p) => p.x === x && p.y === y);
+          const nextProps = hasAtCell
+            ? existing.filter((p) => !(p.x === x && p.y === y))
+            : [
+                ...existing,
+                {
+                  id: `prop-${Date.now().toString(36)}-${x}-${y}`,
+                  x,
+                  y,
+                  sprite: activePropSprite,
+                },
+              ];
+          return { ...f, props: nextProps };
+        }),
+      },
+    });
+  },
   loadBlueprint: (bp) => {
     const next = bp ? structuredClone(bp) : createDefaultBlueprint();
     const first = next.floors.at(0)!;

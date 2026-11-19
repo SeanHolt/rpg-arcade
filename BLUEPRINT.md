@@ -88,6 +88,7 @@
 - `src/components/studio/StudioInspector.tsx`, `ClassCardEditor.tsx`, & `NpcInspectorCard.tsx` — Added **🎬 Frame 2** animation drawers so creators can animate monsters, bosses, classes, and NPCs.
 - `src/lib/rpg/schema.ts` — Added `wallVariants` & `floorVariants` (up to 4 sprites each) to `CustomSpritesSchema`, plus `tileVariants` (`"x,y": 0..3`) and non-blocking decorative `props` (`{ id, x, y, sprite, spriteFrame2? }[]`) to `FloorSchema`.
 - `src/lib/rpg/tile-resolver.ts` — Pure helper resolving which of the 4 Wall or Floor variant sprites renders at `(x, y)` on a floor.
+- `src/components/studio/TileVariantsCard.tsx` — Visual Studio editor allowing creators to draw/assign up to 4 Wall variants and 4 Floor variants, paint variant indices (`0..3`) onto tiles, and stamp non-blocking decorative props (`🔥`, `🕯️`, `💀`, `📚`, `💎`, `🪴` or custom 16×16 sprites).
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -119,7 +120,7 @@
 - [x] **Phase 35:** Custom Retro Chiptune Background Music Sequencer completed (`music-presets.ts`, `music-sequencer.ts`, `SoundToggleButton.tsx`, `MusicSequencerCard.tsx`).
 - [x] **Phase 36:** Pro Pixel Art Drawer Upgrade (Symmetry, Flood Fill, Eyedropper, Flip/Rotate, Undo/Redo, Retro Palettes) completed.
 - [x] **Phase 37:** 2-Frame Idle Sprite Animations & PNG Sprite Sheet Slicer completed.
-- [ ] **Phase 38:** Multi-Variant Wall & Floor Tiles (4 Variants) + Non-Blocking Decorative Props Layer *(Step 38A — Current)*
-- [ ] **Phase 39:** Room Prefab Stamps, Floor Transform Tools & Paired/One-Way Portal Runes
+- [x] **Phase 38:** Multi-Variant Wall & Floor Tiles (4 Variants) + Non-Blocking Decorative Props Layer completed (`tile-resolver.ts`, `DungeonGrid.tsx`, `TileVariantsCard.tsx`).
+- [ ] **Phase 39:** Room Prefab Stamps, Floor Transform Tools & Paired/One-Way Portal Runes *(Next)*
 - [ ] **Phase 40:** Secret Breakable Walls & Floor Traps/Hazards
 - [ ] **Phase 41:** Interactive Lore Signs, Riddles & Push-Block / Pressure Plate / Lever Puzzles
