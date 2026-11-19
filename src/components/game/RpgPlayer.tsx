@@ -71,9 +71,13 @@ export function RpgPlayer({
         triggerClassSkill,
         sellGear,
     } = useGameStore();
+    const initializedForRef = useRef<RpgBlueprint | null>(null);
     useEffect(() => {
+        if (initializedForRef.current === blueprint) return;
+        initializedForRef.current = blueprint;
         initGame(blueprint, isEndless, flags);
-    }, [blueprint, isEndless, flags, initGame]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [blueprint, isEndless, initGame]);
 
     const [rewardState, setRewardState] = useState<{ key: string; message: string } | null>(null);
     const claimedForRunRef = useRef<string | null>(null);
@@ -303,22 +307,23 @@ export function RpgPlayer({
                             </div>
                         </div>
                     )}
-
-                    <DungeonGrid
-                        floor={currentFloor}
-                        player={player}
-                        enemies={livingEnemies}
-                        usedShrines={usedShrines}
-                        openedChests={openedChests}
-                        exploredTiles={exploredTiles}
-                        fogOfWar={Boolean(liveBlueprint.fogOfWar)}
-                        visionRadius={liveBlueprint.visionRadius ?? 2}
-                        themeId={liveBlueprint.theme}
-                        customSprites={liveBlueprint.customSprites}
-                        onMove={movePlayer}
-                        onRangedAttack={rangedAttack}
-                        onUseSkill={triggerClassSkill}
-                    />
+                    <div className="mx-auto w-fit">
+                        <DungeonGrid
+                            floor={currentFloor}
+                            player={player}
+                            enemies={livingEnemies}
+                            usedShrines={usedShrines}
+                            openedChests={openedChests}
+                            exploredTiles={exploredTiles}
+                            fogOfWar={Boolean(liveBlueprint.fogOfWar)}
+                            visionRadius={liveBlueprint.visionRadius ?? 2}
+                            themeId={liveBlueprint.theme}
+                            customSprites={liveBlueprint.customSprites}
+                            onMove={movePlayer}
+                            onRangedAttack={rangedAttack}
+                            onUseSkill={triggerClassSkill}
+                        />
+                    </div>
                 </div>
 
                 <GameSidebar

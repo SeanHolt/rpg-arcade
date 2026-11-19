@@ -13,17 +13,25 @@ export function ClassBuilderPanel({ maxClasses = 6 }: { maxClasses?: number }) {
     removeHeroClass,
     setClassStarterItems,
   } = useEditorStore();
-  const [drawingClassId, setDrawingClassId] = useState<string | null>(null);
+  const [drawingState, setDrawingState] = useState<{ id: string; frame2: boolean } | null>(null);
   const classes = blueprint.classes ?? [];
-  const activeDrawClass = classes.find((c) => c.id === drawingClassId);
+  const activeDrawClass = classes.find((c) => c.id === drawingState?.id);
 
   return (
     <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
-      {activeDrawClass && (
+      {activeDrawClass && drawingState && (
         <PixelArtModal
-          title={`Class: ${activeDrawClass.name}`}
-          onSave={(dataUrl) => updateHeroClass(activeDrawClass.id, { sprite: dataUrl })}
-          onClose={() => setDrawingClassId(null)}
+          title={`Class: ${activeDrawClass.name} (${drawingState.frame2 ? "Frame 2" : "Frame 1"})`}
+          initialSprite={
+            drawingState.frame2 ? activeDrawClass.spriteFrame2 : activeDrawClass.sprite
+          }
+          onSave={(dataUrl) =>
+            updateHeroClass(
+              activeDrawClass.id,
+              drawingState.frame2 ? { spriteFrame2: dataUrl } : { sprite: dataUrl }
+            )
+          }
+          onClose={() => setDrawingState(null)}
         />
       )}
 
@@ -56,7 +64,8 @@ export function ClassBuilderPanel({ maxClasses = 6 }: { maxClasses?: number }) {
               onUpdate={(fields) => updateHeroClass(cls.id, fields)}
               onRemove={() => removeHeroClass(cls.id)}
               onSetItems={(items) => setClassStarterItems(cls.id, items)}
-              onDrawSprite={() => setDrawingClassId(cls.id)}
+              onDrawSprite={() => setDrawingState({ id: cls.id, frame2: false })}
+              onDrawFrame2={() => setDrawingState({ id: cls.id, frame2: true })}
             />
           ))}
         </div>

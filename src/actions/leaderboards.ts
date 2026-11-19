@@ -49,7 +49,6 @@ export async function submitRunScore(input: {
           depthReached: safeDepth,
         },
       });
-      revalidatePath("/endless");
       return { saved: true };
     }
 

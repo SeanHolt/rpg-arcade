@@ -9,6 +9,7 @@ import type { ElementType } from "@/lib/rpg/schema";
 import { ItemTypeSelect } from "./ItemTypeSelect";
 import { EnemyAiEditor } from "./EnemyAiEditor";
 import { MusicSequencerCard } from "./MusicSequencerCard";
+import { SpriteSheetSlicerModal } from "./SpriteSheetSlicerModal";
 
 type TileSlot = "wall" | "floor" | "stairs" | "shrine" | "chest";
 
@@ -21,17 +22,17 @@ export function StudioInspector() {
         selectedNpcId,
         renameFloor,
         resizeActiveFloor,
-        updateEnemy,
         updateChest,
-        updateNpc,
         setStairTarget,
         setCustomSprite,
         setFloorMusic,
+        updateEnemy, updateNpc,
     } = useEditorStore();
 
     const [drawingEnemy, setDrawingEnemy] = useState(false);
     const [drawingTile, setDrawingTile] = useState<TileSlot | null>(null);
-
+    const [drawingFrame2, setDrawingFrame2] = useState(false);
+    const [slicingSheet, setSlicingSheet] = useState(false);
     const floor =
         blueprint.floors.find((f) => f.id === activeFloorId) ?? blueprint.floors.at(0)!;
     const enemy = floor.enemies.find((e) => e.id === selectedEnemyId);
@@ -40,10 +41,16 @@ export function StudioInspector() {
 
     return (
         <aside className="space-y-4">
-            {drawingEnemy && enemy && (
+            {enemy && drawingEnemy && (
                 <PixelArtModal
-                    title={enemy.name}
-                    onSave={(dataUrl) => updateEnemy(enemy.id, { sprite: dataUrl })}
+                    title={`${enemy.name} (${drawingFrame2 ? "Frame 2" : "Frame 1"})`}
+                    initialSprite={drawingFrame2 ? enemy.spriteFrame2 : enemy.sprite}
+                    onSave={(url) =>
+                        updateEnemy(
+                            enemy.id,
+                            drawingFrame2 ? { spriteFrame2: url } : { sprite: url }
+                        )
+                    }
                     onClose={() => setDrawingEnemy(false)}
                 />
             )}
@@ -101,6 +108,26 @@ export function StudioInspector() {
                     musicTrack={floor.musicTrack}
                     onChange={setFloorMusic}
                 />
+                <button
+                    type="button"
+                    onClick={() => setSlicingSheet(true)}
+                    className="w-full rounded-xl border border-purple-700 bg-purple-950/60 px-3 py-2 text-xs font-semibold text-purple-200 hover:bg-purple-900/60"
+                >
+                    ✂️ Slice PNG Sprite Sheet
+                </button>
+
+                {slicingSheet && (
+                    <SpriteSheetSlicerModal
+                        hasSelectedEntity={Boolean(enemy || npc)}
+                        onAssignTile={(slot, url) => setCustomSprite(slot, url)}
+                        onAssignEntity={(url, isFrame2) => {
+                            const fields = isFrame2 ? { spriteFrame2: url } : { sprite: url };
+                            if (enemy) updateEnemy(enemy.id, fields);
+                            else if (npc) updateNpc(npc.id, fields);
+                        }}
+                        onClose={() => setSlicingSheet(false)}
+                    />
+                )}
             </div>
 
             <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 text-xs">
@@ -204,23 +231,53 @@ export function StudioInspector() {
                     />
                     <div className="flex items-center justify-between rounded bg-zinc-950 px-2.5 py-1.5">
                         <div className="flex items-center gap-2">
-                            <SpriteDisplay sprite={enemy.sprite} sizeClass="h-6 w-6" />
-                            {!enemy.sprite.startsWith("data:image/") && (
+                            <SpriteDisplay
+                                sprite={enemy.sprite ?? "👹"}
+                                frame2={enemy.spriteFrame2}
+                                sizeClass="h-6 w-6"
+                            />
+                            {!enemy.sprite?.startsWith("data:image/") && (
                                 <input
-                                    value={enemy.sprite}
+                                    value={enemy.sprite ?? "👹"}
                                     maxLength={8}
                                     onChange={(e) => updateEnemy(enemy.id, { sprite: e.target.value })}
-                                    className="w-14 rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-center"
+                                    className="w-12 rounded border border-zinc-700 bg-zinc-900 px-1 py-0.5 text-center"
                                 />
                             )}
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setDrawingEnemy(true)}
-                            className="rounded border border-emerald-700 bg-emerald-950/60 px-2.5 py-1 font-medium text-emerald-300 hover:bg-emerald-900/60"
-                        >
-                            🎨 Draw / Upload
-                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setDrawingFrame2(false);
+                                    setDrawingEnemy(true);
+                                }}
+                                className="rounded border border-emerald-700 bg-emerald-950/60 px-2 py-1 text-emerald-300"
+                            >
+                                🎨 Frame 1
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setDrawingFrame2(true);
+                                    setDrawingEnemy(true);
+                                }}
+                                className="rounded border border-purple-700 bg-purple-950/60 px-2 py-1 text-purple-300"
+                            >
+                                🎬 Frame 2
+                            </button>
+                            {enemy.spriteFrame2 && (
+                                <button
+                                    type="button"
+                                    title="Clear Frame 2"
+                                    onClick={() => updateEnemy(enemy.id, { spriteFrame2: undefined })}
+                                    className="text-zinc-500 hover:text-red-400"
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">

@@ -1,6 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  createEmptyPixelGrid,
+  flipGridHorizontal,
+  flipGridVertical,
+  floodFillGrid,
+  GRID_DIM,
+  renderGridToDataUrl,
+  rotateGrid90,
+} from "@/lib/rpg/pixel-tools";
+import { PixelToolbar, type PixelTool } from "./PixelToolbar";
 
 type Props = {
   title: string;
@@ -9,146 +19,202 @@ type Props = {
   onClose: () => void;
 };
 
-const PALETTE = [
-  "#000000", "#ffffff", "#ef4444", "#f97316",
-  "#eab308", "#22c55e", "#06b6d4", "#3b82f6",
-  "#a855f7", "#ec4899", "#78350f", "#71717a",
-];
+export function PixelArtModal({ title, initialSprite, onSave, onClose }: Props) {
+  const [grid, setGrid] = useState<string[]>(() => createEmptyPixelGrid());
+  const [undoStack, setUndoStack] = useState<string[][]>([]);
+  const [redoStack, setRedoStack] = useState<string[][]>([]);
+  const [tool, setTool] = useState<PixelTool>("pencil");
+  const [color, setColor] = useState("#10b981");
+  const [paletteId, setPaletteId] = useState("crypt");
+  const [mirrorX, setMirrorX] = useState(false);
+  const [mirrorY, setMirrorY] = useState(false);
+  const isDrawingRef = useRef(false);
+  const strokeSavedRef = useRef(false);
 
-export function PixelArtModal({ title, onSave, onClose }: Props) {
-  const [pixels, setPixels] = useState<string[]>(() => Array(256).fill(""));
-  const [color, setColor] = useState<string>("#22c55e");
-  const [isDrawing, setIsDrawing] = useState(false);
+  useEffect(() => {
+    if (!initialSprite?.startsWith("data:image/")) return;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = GRID_DIM;
+      canvas.height = GRID_DIM;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, GRID_DIM, GRID_DIM);
+      const data = ctx.getImageData(0, 0, GRID_DIM, GRID_DIM).data;
+      const loaded = createEmptyPixelGrid();
+      for (let i = 0; i < GRID_DIM * GRID_DIM; i++) {
+        const a = data[i * 4 + 3];
+        if (a > 20) {
+          const hex = [0, 1, 2]
+            .map((c) => data[i * 4 + c].toString(16).padStart(2, "0"))
+            .join("");
+          loaded[i] = `#${hex}`;
+        }
+      }
+      setGrid(loaded);
+    };
+    img.src = initialSprite;
+  }, [initialSprite]);
 
-  const paintPixel = (idx: number, erase = false) => {
-    setPixels((prev) => {
+  const commitChange = (next: string[]) => {
+    setUndoStack((prev) => [...prev.slice(-24), grid]);
+    setRedoStack([]);
+    setGrid(next);
+  };
+
+  const applyAtCell = (idx: number, isStart: boolean) => {
+    if (tool === "eyedropper") {
+      const picked = grid[idx];
+      if (picked) setColor(picked);
+      setTool("pencil");
+      return;
+    }
+
+    const paintVal = tool === "eraser" ? "" : color;
+    if (tool === "fill") {
+      if (isStart) commitChange(floodFillGrid(grid, idx, paintVal));
+      return;
+    }
+
+    if (isStart && !strokeSavedRef.current) {
+      setUndoStack((prev) => [...prev.slice(-24), grid]);
+      setRedoStack([]);
+      strokeSavedRef.current = true;
+    }
+
+    const x = idx % GRID_DIM;
+    const y = Math.floor(idx / GRID_DIM);
+    const targets = new Set<number>([idx]);
+    if (mirrorX) targets.add(y * GRID_DIM + (GRID_DIM - 1 - x));
+    if (mirrorY) targets.add((GRID_DIM - 1 - y) * GRID_DIM + x);
+    if (mirrorX && mirrorY) {
+      targets.add((GRID_DIM - 1 - y) * GRID_DIM + (GRID_DIM - 1 - x));
+    }
+
+    setGrid((prev) => {
       const next = [...prev];
-      next[idx] = erase ? "" : color;
+      targets.forEach((t) => {
+        next[t] = paintVal;
+      });
       return next;
     });
   };
 
-  const exportCanvasDataUrl = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 16;
-    canvas.height = 16;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    pixels.forEach((hex, idx) => {
-      if (!hex) return;
-      ctx.fillStyle = hex;
-      ctx.fillRect(idx % 16, Math.floor(idx / 16), 1, 1);
-    });
-
-    onSave(canvas.toDataURL("image/png"));
-    onClose();
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadPng = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.item(0);
     if (!file) return;
-
     const img = new Image();
-    const reader = new FileReader();
-    reader.onload = () => {
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 16;
-        canvas.height = 16;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0, 16, 16);
-        onSave(canvas.toDataURL("image/png"));
-        onClose();
-      };
-      img.src = reader.result as string;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = GRID_DIM;
+      canvas.height = GRID_DIM;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, GRID_DIM, GRID_DIM);
+      onSave(canvas.toDataURL("image/png"));
+      onClose();
     };
-    reader.readAsDataURL(file);
+    img.src = URL.createObjectURL(file);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+    <div
+      onMouseUp={() => {
+        isDrawingRef.current = false;
+        strokeSavedRef.current = false;
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+    >
+      <div className="w-full max-w-lg space-y-4 rounded-2xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-zinc-100">🎨 Pixel Art Studio: {title}</h3>
+          <h3 className="text-sm font-bold text-zinc-100">🎨 16×16 Pixel Studio — {title}</h3>
           <button type="button" onClick={onClose} className="text-zinc-400 hover:text-white">
             ✕
           </button>
         </div>
 
-        {/* 16x16 Drawing Grid */}
-        <div
-          onMouseLeave={() => setIsDrawing(false)}
-          className="mx-auto grid w-fit grid-cols-16 gap-px rounded-lg border border-zinc-700 bg-zinc-800 p-1"
-          style={{ gridTemplateColumns: "repeat(16, 1.15rem)" }}
-        >
-          {pixels.map((hex, idx) => (
-            <div
-              key={idx}
-              onMouseDown={() => {
-                setIsDrawing(true);
-                paintPixel(idx);
-              }}
-              onMouseEnter={() => {
-                if (isDrawing) paintPixel(idx);
-              }}
-              onMouseUp={() => setIsDrawing(false)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                paintPixel(idx, true);
-              }}
-              style={{ backgroundColor: hex || "#18181b" }}
-              className="h-4 w-4 cursor-crosshair"
-            />
-          ))}
+        <PixelToolbar
+          tool={tool}
+          setTool={setTool}
+          color={color}
+          setColor={setColor}
+          paletteId={paletteId}
+          setPaletteId={setPaletteId}
+          mirrorX={mirrorX}
+          setMirrorX={setMirrorX}
+          mirrorY={mirrorY}
+          setMirrorY={setMirrorY}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
+          onUndo={() => {
+            const last = undoStack.at(-1);
+            if (!last) return;
+            setRedoStack((r) => [...r, grid]);
+            setUndoStack((u) => u.slice(0, -1));
+            setGrid(last);
+          }}
+          onRedo={() => {
+            const next = redoStack.at(-1);
+            if (!next) return;
+            setUndoStack((u) => [...u, grid]);
+            setRedoStack((r) => r.slice(0, -1));
+            setGrid(next);
+          }}
+          onFlipH={() => commitChange(flipGridHorizontal(grid))}
+          onFlipV={() => commitChange(flipGridVertical(grid))}
+          onRotate={() => commitChange(rotateGrid90(grid))}
+          onClear={() => commitChange(createEmptyPixelGrid())}
+        />
+
+        <div className="flex justify-center">
+          <div
+            className="grid select-none border border-zinc-700 bg-zinc-950"
+            style={{ gridTemplateColumns: `repeat(${GRID_DIM}, 18px)` }}
+          >
+            {grid.map((hex, idx) => (
+              <div
+                key={idx}
+                onMouseDown={() => {
+                  isDrawingRef.current = true;
+                  applyAtCell(idx, true);
+                }}
+                onMouseEnter={() => {
+                  if (isDrawingRef.current) applyAtCell(idx, false);
+                }}
+                style={{ backgroundColor: hex || undefined }}
+                className="h-[18px] w-[18px] cursor-crosshair border-[0.5px] border-zinc-800/70"
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Color Swatches */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5">
-          {PALETTE.map((swatch) => (
-            <button
-              key={swatch}
-              type="button"
-              onClick={() => setColor(swatch)}
-              style={{ backgroundColor: swatch }}
-              className={`h-6 w-6 rounded-full border-2 ${
-                color === swatch ? "scale-110 border-white" : "border-zinc-700"
-              }`}
-            />
-          ))}
-          <button
-            type="button"
-            onClick={() => setColor("")}
-            className={`rounded border px-2 py-1 text-xs ${
-              color === "" ? "border-emerald-400 text-emerald-300" : "border-zinc-700 text-zinc-400"
-            }`}
-          >
-            Eraser
-          </button>
-          <button
-            type="button"
-            onClick={() => setPixels(Array(256).fill(""))}
-            className="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-400 hover:text-white"
-          >
-            Clear
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 pt-4">
-          <label className="cursor-pointer rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700">
-            📁 Upload PNG/JPG
-            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 pt-3 text-xs">
+          <label className="cursor-pointer rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300 hover:bg-zinc-800">
+            📁 Upload PNG
+            <input type="file" accept="image/*" onChange={handleUploadPng} className="hidden" />
           </label>
 
-          <button
-            type="button"
-            onClick={exportCanvasDataUrl}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500"
-          >
-            Use Pixel Sprite
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-zinc-700 px-3.5 py-2 text-zinc-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onSave(renderGridToDataUrl(grid));
+                onClose();
+              }}
+              className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-500"
+            >
+              Save Sprite
+            </button>
+          </div>
         </div>
       </div>
     </div>

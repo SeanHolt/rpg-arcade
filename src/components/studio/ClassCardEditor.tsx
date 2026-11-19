@@ -11,6 +11,7 @@ type Props = {
     onUpdate: (fields: Partial<RpgHeroClass>) => void;
     onRemove: () => void;
     onSetItems: (items: RpgStarterItem[]) => void;
+    onDrawFrame2: () => void;
 };
 
 export function ClassCardEditor({
@@ -19,6 +20,7 @@ export function ClassCardEditor({
     onUpdate,
     onRemove,
     onSetItems,
+    onDrawFrame2
 }: Props) {
     const addItem = () => {
         if (cls.starterItems.length >= 5) return;
@@ -31,7 +33,7 @@ export function ClassCardEditor({
     return (
         <div className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs">
             <div className="flex items-center gap-2">
-                <SpriteDisplay sprite={cls.sprite} sizeClass="h-7 w-7" />
+                <SpriteDisplay sprite={cls.sprite} sizeClass="h-7 w-7" frame2={cls.spriteFrame2} />
                 {!cls.sprite.startsWith("data:image/") && (
                     <input
                         value={cls.sprite}
@@ -40,14 +42,32 @@ export function ClassCardEditor({
                         className="w-11 rounded border border-zinc-700 bg-zinc-900 px-1.5 py-1 text-center"
                     />
                 )}
-                <button
-                    type="button"
-                    onClick={onDrawSprite}
-                    title="Draw or Upload Pixel Sprite"
-                    className="rounded border border-emerald-800 bg-emerald-950/60 px-2 py-1 text-emerald-300 hover:bg-emerald-900/60"
-                >
-                    🎨
-                </button>
+                <div className="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={onDrawSprite}
+                        className="rounded border border-emerald-700 bg-emerald-950/60 px-2 py-1 text-emerald-300 hover:bg-emerald-900/60"
+                    >
+                        🎨 Frame 1
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onDrawFrame2}
+                        className="rounded border border-purple-700 bg-purple-950/60 px-2 py-1 text-purple-300 hover:bg-purple-900/60"
+                    >
+                        🎬 Frame 2
+                    </button>
+                    {cls.spriteFrame2 && (
+                        <button
+                            type="button"
+                            title="Clear Frame 2"
+                            onClick={() => onUpdate({ spriteFrame2: undefined })}
+                            className="text-zinc-500 hover:text-red-400"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
                 <input
                     value={cls.name}
                     onChange={(e) => onUpdate({ name: e.target.value })}

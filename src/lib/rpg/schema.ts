@@ -44,6 +44,7 @@ export const HeroClassSchema = z.object({
   id: z.string().min(1).max(40),
   name: z.string().min(1).max(30),
   sprite: SpriteFieldSchema.default("🧙"),
+  spriteFrame2: SpriteFieldSchema.optional(),
   description: z.string().max(160).default(""),
   combatType: z.enum(["melee", "ranged"]).default("melee"),
   range: z.number().int().min(1).max(5).default(1),
@@ -58,6 +59,7 @@ export const EnemySchema = z.object({
   id: z.string().min(1).max(40),
   name: z.string().min(1).max(40),
   sprite: SpriteFieldSchema.default("👹"),
+  spriteFrame2: SpriteFieldSchema.optional(),
   x: z.number().int().min(0).max(49),
   y: z.number().int().min(0).max(49),
   hp: z.number().int().min(1).max(9999),
@@ -108,6 +110,7 @@ export const NpcSchema = z.object({
   id: z.string().min(1).max(40),
   name: z.string().min(1).max(40),
   sprite: SpriteFieldSchema.default("🧙‍♂️"),
+  spriteFrame2: SpriteFieldSchema.optional(),
   x: z.number().int().min(0).max(49),
   y: z.number().int().min(0).max(49),
   role: z.enum(["story", "merchant"]).default("story"),
@@ -176,10 +179,11 @@ export const CustomSpritesSchema = z
     floor: SpriteFieldSchema.optional(),
     stairs: SpriteFieldSchema.optional(),
     shrine: SpriteFieldSchema.optional(),
+    shrineFrame2: SpriteFieldSchema.optional(),
     chest: SpriteFieldSchema.optional(),
   })
   .default({});
-export const RpgBlueprintSchema = z
+  export const RpgBlueprintSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters").max(80),
     description: z
@@ -194,6 +198,7 @@ export const RpgBlueprintSchema = z
     player: z.object({
       name: z.string().min(1).max(30).default("Hero"),
       sprite: z.string().min(1).max(8).default("🧙"),
+      spriteFrame2: SpriteFieldSchema.optional(),
       startFloorId: z.string().min(1),
       startX: z.number().int().min(0),
       startY: z.number().int().min(0),

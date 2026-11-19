@@ -4,6 +4,7 @@ import type { RpgFloor } from "@/lib/rpg/schema";
 import type { ActiveEnemy, PlayerRuntimeState } from "@/lib/rpg/runtime-types";
 import { DUNGEON_THEMES, type ThemeId } from "@/lib/rpg/themes";
 import { SpriteDisplay } from "./SpriteDisplay";
+import type { RpgBlueprint, RpgChest, RpgNpc } from "@/lib/rpg/schema";
 
 type Props = {
     floor: RpgFloor;
@@ -15,13 +16,7 @@ type Props = {
     fogOfWar: boolean;
     visionRadius: number;
     themeId?: ThemeId;
-    customSprites?: {
-        wall?: string;
-        floor?: string;
-        stairs?: string;
-        shrine?: string;
-        chest?: string;
-    };
+    customSprites?: RpgBlueprint["customSprites"];
     onMove: (dx: number, dy: number) => void;
     onRangedAttack: (enemyId?: string) => void;
     onUseSkill: () => void;
@@ -74,6 +69,7 @@ export function DungeonGrid({
                         const shrineUsed = usedShrines.includes(`${floor.id}:${x},${y}`);
                         const targetable =
                             Boolean(enemy) && inSight && player.combatType === "ranged" && dist <= player.range;
+                        const npc = (floor.npcs ?? []).find((n) => n.x === x && n.y === y);
 
                         let bg = theme.floorBg;
                         let content: React.ReactNode = customSprites.floor ? (
@@ -98,11 +94,13 @@ export function DungeonGrid({
                             bg = shrineUsed ? "bg-zinc-800/60" : theme.shrineBg;
                             content = (
                                 <span className={shrineUsed ? "opacity-30" : ""}>
-                                    <SpriteDisplay
-                                        sprite={customSprites.shrine ?? theme.shrineIcon}
-                                        sizeClass="h-7 w-7"
-                                        textClass="text-sm"
-                                    />
+                                    {!enemy && !chest && !npc && tile === "H" && !usedShrines.includes(`${floor.id}:${x},${y}`) && (
+                                        <SpriteDisplay
+                                            sprite={customSprites?.shrine ?? "✨"}
+                                            frame2={customSprites?.shrineFrame2}
+                                            alt="Shrine"
+                                        />
+                                    )}
                                 </span>
                             );
                         }
@@ -119,24 +117,23 @@ export function DungeonGrid({
                                 />
                             );
                         }
-                        const npc = (floor.npcs ?? []).find((n) => n.x === x && n.y === y);
                         if (npc && inSight) {
                             content = (
                                 <span title={`${npc.name} (${npc.role})`}>
-                                    <SpriteDisplay sprite={npc.sprite} alt={npc.name} />
+                                    <SpriteDisplay sprite={npc.sprite} alt={npc.name} frame2={npc.spriteFrame2} />
                                 </span>
                             );
                         }
                         if (enemy && inSight) {
                             content = (
                                 <span title={`${enemy.name} (${enemy.currentHp}/${enemy.hp} HP)`}>
-                                    <SpriteDisplay sprite={enemy.sprite} alt={enemy.name} />
+                                    <SpriteDisplay sprite={enemy.sprite} alt={enemy.name} frame2={enemy.spriteFrame2} />
                                 </span>
                             );
                         }
 
                         if (isPlayer) {
-                            content = <SpriteDisplay sprite={player.sprite} alt={player.name} />;
+                            content = <SpriteDisplay sprite={player.sprite} alt={player.name} frame2={player.spriteFrame2} />;
                         }
 
                         return (

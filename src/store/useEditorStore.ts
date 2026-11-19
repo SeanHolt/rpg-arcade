@@ -35,7 +35,7 @@ type EditorStore = {
   selectNpc: (id: string | null) => void;
   updateMeta: (fields: Partial<RpgBlueprint>) => void;
   setCustomSprite: (
-    slot: "wall" | "floor" | "stairs" | "shrine" | "chest",
+    slot: "wall" | "floor" | "stairs" | "shrine" | "chest" | "shrineFrame2",
     sprite?: string,
   ) => void;
   addFloor: (maxFloors: number) => void;

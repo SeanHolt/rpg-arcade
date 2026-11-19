@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function NpcInspectorCard({ npc, onUpdate }: Props) {
-  const [drawing, setDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<"frame1" | "frame2" | null>(null);
 
   const addShopItem = () => {
     if (npc.shopItems.length >= 6) return;
@@ -34,11 +34,14 @@ export function NpcInspectorCard({ npc, onUpdate }: Props) {
 
   return (
     <div className="space-y-2.5 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 text-xs">
-      {drawing && (
+      {drawMode && (
         <PixelArtModal
-          title={`NPC: ${npc.name}`}
-          onSave={(url) => onUpdate({ sprite: url })}
-          onClose={() => setDrawing(false)}
+          title={`NPC: ${npc.name} (${drawMode === "frame2" ? "Frame 2" : "Frame 1"})`}
+          initialSprite={drawMode === "frame2" ? npc.spriteFrame2 : npc.sprite}
+          onSave={(url) =>
+            onUpdate(drawMode === "frame2" ? { spriteFrame2: url } : { sprite: url })
+          }
+          onClose={() => setDrawMode(null)}
         />
       )}
 
@@ -51,23 +54,46 @@ export function NpcInspectorCard({ npc, onUpdate }: Props) {
 
       <div className="flex items-center justify-between rounded bg-zinc-950 px-2.5 py-1.5">
         <div className="flex items-center gap-2">
-          <SpriteDisplay sprite={npc.sprite} sizeClass="h-6 w-6" />
-          {!npc.sprite.startsWith("data:image/") && (
+          <SpriteDisplay
+            sprite={npc.sprite ?? "🧙"}
+            frame2={npc.spriteFrame2}
+            sizeClass="h-6 w-6"
+          />
+          {!npc.sprite?.startsWith("data:image/") && (
             <input
-              value={npc.sprite}
+              value={npc.sprite ?? "🧙"}
               maxLength={8}
               onChange={(e) => onUpdate({ sprite: e.target.value })}
               className="w-12 rounded border border-zinc-700 bg-zinc-900 px-1 py-0.5 text-center"
             />
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => setDrawing(true)}
-          className="rounded border border-emerald-700 bg-emerald-950/60 px-2 py-1 text-emerald-300"
-        >
-          🎨 Sprite
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setDrawMode("frame1")}
+            className="rounded border border-emerald-700 bg-emerald-950/60 px-2 py-1 text-emerald-300"
+          >
+            🎨 Frame 1
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawMode("frame2")}
+            className="rounded border border-purple-700 bg-purple-950/60 px-2 py-1 text-purple-300"
+          >
+            🎬 Frame 2
+          </button>
+          {npc.spriteFrame2 && (
+            <button
+              type="button"
+              title="Clear Frame 2"
+              onClick={() => onUpdate({ spriteFrame2: undefined })}
+              className="text-zinc-500 hover:text-red-400"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       <select

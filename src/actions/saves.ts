@@ -93,7 +93,6 @@ export async function saveEndlessProgress(input: {
     },
   });
 
-  revalidatePath("/endless");
   return { success: true };
 }
 

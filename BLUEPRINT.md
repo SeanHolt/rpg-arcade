@@ -76,6 +76,16 @@
 - `src/lib/audio/music-sequencer.ts` — Zero-asset Web Audio looping 8-step background music player (`startBgMusic`, `stopBgMusic`, `isMusicMuted`, `setMusicMuted`) persisted in `localStorage`.
 - `src/components/game/SoundToggleButton.tsx` — Upgraded with separate **🔊 SFX** and **🎵 Music** HUD toggles persisted in `localStorage`.
 - `src/components/studio/MusicSequencerCard.tsx` — Visual Studio 8-note chiptune melody sequencer (`tempoBpm`, `waveform`, 8 note dropdowns, genre preset loader, and live Preview/Stop button).
+- `src/lib/rpg/pixel-palettes.ts` — Curated retro color palettes (`Game Boy`, `NES Classic`, `Dungeon Crypt`, `Magma Forge`, `Pirate Cove`) for `PixelArtModal.tsx`.
+- `src/lib/rpg/pixel-tools.ts` — Pure 16×16 pixel grid utilities (`floodFillGrid`, `flipGridHorizontal`, `flipGridVertical`, `rotateGrid90`, `renderGridToDataUrl`).
+- `src/components/studio/PixelToolbar.tsx` — Drawing tools (`pencil`, `fill`, `eyedropper`, `eraser`), mirror symmetry toggles (`mirrorX`, `mirrorY`), Undo/Redo, Flip/Rotate, and Retro Palette swatches for `PixelArtModal.tsx`.
+- `src/components/studio/PixelArtModal.tsx` — Upgraded 16×16 pixel art studio supporting initial sprite preloading, symmetry drawing, flood fill, undo/redo history, and PNG import/export.
+- `src/lib/rpg/schema.ts` — Added optional `spriteFrame2: SpriteFieldSchema.optional()` to `EnemySchema`, `NpcSchema`, `HeroClassSchema`, and `PlayerConfigSchema`, plus `shrineFrame2` in `CustomSpritesSchema`.
+- `src/components/game/SpriteDisplay.tsx` — Upgraded to support optional `frame2` idle sprite alternation (`650ms` interval) across dungeon tiles, enemies, NPCs, and heroes.
+- `src/lib/rpg/sheet-slicer.ts` — Slices an uploaded PNG sprite sheet into individual 16×16 base64 sprites (skipping fully transparent cells).
+- `src/components/studio/SpriteSheetSlicerModal.tsx` — Visual Studio & Marketplace batch sprite-sheet slicer modal.
+- `src/components/studio/SpriteSheetSlicerModal.tsx` — Visual Studio modal to upload any PNG sprite sheet, slice it into 16×16 frames (`sliceImageToSprites`), and assign sliced frames directly to dungeon tiles, entities, or Frame 2 animations.
+- `src/components/studio/StudioInspector.tsx`, `ClassCardEditor.tsx`, & `NpcInspectorCard.tsx` — Added **🎬 Frame 2** animation drawers so creators can animate monsters, bosses, classes, and NPCs.
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -105,3 +115,9 @@
 - [x] **Phase 33:** Victory Speedrun Leaderboards & Endless Hall of Fame completed (`RunScore` model, `src/actions/leaderboards.ts`, `LeaderboardCard.tsx`, automatic victory submission in `RpgPlayer.tsx`).
 - [x] **Phase 34:** Monster Patrol AI & Telegraphed Boss Special Attacks (Studio Configurable) completed (`enemy-ai.ts`, `EnemyAiEditor.tsx`, `⚠️ CHARGING` HUD warnings).
 - [x] **Phase 35:** Custom Retro Chiptune Background Music Sequencer completed (`music-presets.ts`, `music-sequencer.ts`, `SoundToggleButton.tsx`, `MusicSequencerCard.tsx`).
+- [x] **Phase 36:** Pro Pixel Art Drawer Upgrade (Symmetry, Flood Fill, Eyedropper, Flip/Rotate, Undo/Redo, Retro Palettes) completed.
+- [x] **Phase 37:** 2-Frame Idle Sprite Animations & PNG Sprite Sheet Slicer completed.
+- [ ] **Phase 38:** Multi-Variant Wall & Floor Tiles (4 Variants) + Non-Blocking Decorative Props Layer *(Next)*
+- [ ] **Phase 39:** Room Prefab Stamps, Floor Transform Tools & Paired/One-Way Portal Runes
+- [ ] **Phase 40:** Secret Breakable Walls & Floor Traps/Hazards
+- [ ] **Phase 41:** Interactive Lore Signs, Riddles & Push-Block / Pressure Plate / Lever Puzzles

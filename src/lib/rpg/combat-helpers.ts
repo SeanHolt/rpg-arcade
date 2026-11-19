@@ -101,6 +101,7 @@ export function buildStartingHero(
     name: cleanName,
     className: chosenClass?.name ?? "Adventurer",
     sprite,
+    spriteFrame2: chosenClass?.spriteFrame2 ?? blueprint.player.spriteFrame2,
     combatType,
     baseRange,
     range: baseRange,

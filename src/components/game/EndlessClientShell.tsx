@@ -31,7 +31,8 @@ export function EndlessClientShell({ isLoggedIn, cloudSave, flags }: Props) {
         }
       }
     });
-  }, [isLoggedIn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!blueprint) {
     return <div className="h-96 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />;

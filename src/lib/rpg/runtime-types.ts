@@ -29,6 +29,7 @@ export type PlayerRuntimeState = {
   name: string;
   className: string;
   sprite: string;
+  spriteFrame2?: string;
   combatType: "melee" | "ranged";
   range: number;
   x: number;
