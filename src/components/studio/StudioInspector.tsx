@@ -11,6 +11,7 @@ import { EnemyAiEditor } from "./EnemyAiEditor";
 import { MusicSequencerCard } from "./MusicSequencerCard";
 import { SpriteSheetSlicerModal } from "./SpriteSheetSlicerModal";
 import { TileVariantsCard } from "./TileVariantsCard";
+import { RoomToolsCard } from "./RoomToolsCard";
 
 type TileSlot = "wall" | "floor" | "stairs" | "shrine" | "chest";
 
@@ -110,6 +111,7 @@ export function StudioInspector() {
                     onChange={setFloorMusic}
                 />
                 <TileVariantsCard />
+                <RoomToolsCard />
                 <button
                     type="button"
                     onClick={() => setSlicingSheet(true)}

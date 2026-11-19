@@ -16,6 +16,13 @@ import {
   type BrushTool,
 } from "@/lib/rpg/editor-helpers";
 import { applyCellPaint } from "@/lib/rpg/editor-paint";
+import {
+  flipFloorHorizontal,
+  rotateFloor90,
+  stampRoomPrefab,
+  type RoomPrefabId,
+} from "@/lib/rpg/floor-transforms";
+import type { RpgPortalRune } from "@/lib/rpg/schema";
 
 export type { BrushTool };
 
@@ -28,6 +35,12 @@ type EditorStore = {
   selectedNpcId: string | null;
   activeVariantIndex: number;
   activePropSprite: string;
+  rotateActiveFloor: () => void;
+  flipActiveFloor: () => void;
+  applyRoomPrefab: (prefab: RoomPrefabId) => void;
+  addPortalRune: () => void;
+  updatePortalRune: (id: string, fields: Partial<RpgPortalRune>) => void;
+  removePortalRune: (id: string) => void;
   setActiveVariantIndex: (idx: number) => void;
   setActivePropSprite: (sprite: string) => void;
   setTileVariantSprite: (
@@ -78,6 +91,105 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   selectedNpcId: null,
   activeVariantIndex: 0,
   activePropSprite: "🔥",
+  rotateActiveFloor: () => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId ? rotateFloor90(f) : f,
+        ),
+      },
+    });
+  },
+
+  flipActiveFloor: () => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId ? flipFloorHorizontal(f) : f,
+        ),
+      },
+    });
+  },
+
+  applyRoomPrefab: (prefab) => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId ? stampRoomPrefab(f, prefab) : f,
+        ),
+      },
+    });
+  },
+
+  addPortalRune: () => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) => {
+          if (f.id !== activeFloorId) return f;
+          const existing = f.portals ?? [];
+          if (existing.length >= 12) return f;
+          const maxCoord = Math.max(2, f.grid.length - 3);
+          return {
+            ...f,
+            portals: [
+              ...existing,
+              {
+                id: `portal-${Date.now().toString(36)}`,
+                x: 2,
+                y: 2,
+                targetX: maxCoord,
+                targetY: maxCoord,
+                color: "cyan",
+                oneWay: false,
+              },
+            ],
+          };
+        }),
+      },
+    });
+  },
+
+  updatePortalRune: (id, fields) => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId
+            ? {
+                ...f,
+                portals: (f.portals ?? []).map((pt) =>
+                  pt.id === id ? { ...pt, ...fields } : pt,
+                ),
+              }
+            : f,
+        ),
+      },
+    });
+  },
+
+  removePortalRune: (id) => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId
+            ? { ...f, portals: (f.portals ?? []).filter((pt) => pt.id !== id) }
+            : f,
+        ),
+      },
+    });
+  },
+
   setActiveVariantIndex: (idx) => set({ activeVariantIndex: idx }),
   setActivePropSprite: (sprite) => set({ activePropSprite: sprite }),
 

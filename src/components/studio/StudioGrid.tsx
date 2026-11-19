@@ -55,6 +55,7 @@ export function StudioGrid() {
             const chest = (floor.chests ?? []).find((c) => c.x === x && c.y === y);
             const npc = (floor.npcs ?? []).find((n) => n.x === x && n.y === y);
             const prop = (floor.props ?? []).find((p) => p.x === x && p.y === y);
+            const portal = (floor.portals ?? []).find((pt) => pt.x === x && pt.y === y);
 
             const baseBg =
               tile === "#"
@@ -108,6 +109,13 @@ export function StudioGrid() {
                     />
                   ) : npc ? (
                     <SpriteDisplay sprite={npc.sprite} sizeClass="h-6 w-6" />
+                  ) : portal ? (
+                    <span
+                      title={`Portal → (${portal.targetX}, ${portal.targetY})`}
+                      className="text-sm"
+                    >
+                      🌀
+                    </span>
                   ) : tile === "S" ? (
                     <SpriteDisplay
                       sprite={blueprint.customSprites?.stairs ?? theme.stairsIcon}
