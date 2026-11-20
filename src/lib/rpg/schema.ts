@@ -172,6 +172,49 @@ export const FloorTrapSchema = z.object({
   trapType: z.enum(["spikes", "poison_vent", "lava_crack"]).default("spikes"),
   damage: z.number().int().min(1).max(100).default(8),
 });
+export const RiddleSchema = z.object({
+  question: z.string().min(3).max(160),
+  options: z.array(z.string().min(1).max(60)).min(2).max(4),
+  correctIndex: z.number().int().min(0).max(3),
+  rewardGold: z.number().int().min(0).max(500).default(25),
+  rewardXp: z.number().int().min(0).max(500).default(30),
+});
+
+export const SignSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  title: z.string().min(1).max(48).default("Carved Monument"),
+  message: z.string().min(1).max(280),
+  riddle: RiddleSchema.optional(),
+});
+
+export const PushBlockSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+});
+
+export const PressurePlateSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  gateId: z.string().min(1).max(40),
+});
+
+export const LeverSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  gateId: z.string().min(1).max(40),
+});
+
+export const PuzzleGateSchema = z.object({
+  id: z.string().min(1).max(40),
+  x: z.number().int().min(0).max(49),
+  y: z.number().int().min(0).max(49),
+  label: z.string().min(1).max(32).default("Iron Gate"),
+});
 export const FloorSchema = z
   .object({
     id: z.string().min(1).max(40),
@@ -196,6 +239,11 @@ export const FloorSchema = z
     portals: z.array(PortalRuneSchema).max(12).optional(),
     secretWalls: z.array(SecretWallSchema).max(20).optional(),
     traps: z.array(FloorTrapSchema).max(30).optional(),
+  signs: z.array(SignSchema).max(15).optional(),
+  pushBlocks: z.array(PushBlockSchema).max(15).optional(),
+  pressurePlates: z.array(PressurePlateSchema).max(15).optional(),
+  levers: z.array(LeverSchema).max(15).optional(),
+  puzzleGates: z.array(PuzzleGateSchema).max(15).optional(),
     enemies: z.array(EnemySchema).max(50).default([]),
     chests: z.array(ChestSchema).max(30).default([]),
     npcs: z.array(NpcSchema).max(20).default([]),
@@ -363,3 +411,8 @@ export type RpgFloorProp = z.infer<typeof FloorPropSchema>;
 export type RpgPortalRune = z.infer<typeof PortalRuneSchema>;
 export type RpgSecretWall = z.infer<typeof SecretWallSchema>;
 export type RpgFloorTrap = z.infer<typeof FloorTrapSchema>;
+export type RpgSign = z.infer<typeof SignSchema>;
+export type RpgPushBlock = z.infer<typeof PushBlockSchema>;
+export type RpgPressurePlate = z.infer<typeof PressurePlateSchema>;
+export type RpgLever = z.infer<typeof LeverSchema>;
+export type RpgPuzzleGate = z.infer<typeof PuzzleGateSchema>;

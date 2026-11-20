@@ -61,7 +61,13 @@ type GameStore = {
   flags: FeatureFlagsMap;
   turnsTaken: number;
   brokenWalls: string[];
+  activeSignId: string | null;
+  blockPositions: Record<string, { x: number; y: number }>;
+  pulledLevers: string[];
+  solvedRiddleIds: string[];
 
+  closeSignModal: () => void;
+  answerSignRiddle: (signId: string, optionIndex: number) => void;
   initGame: (
     blueprint: RpgBlueprint,
     isEndless?: boolean,
@@ -119,6 +125,50 @@ export const useGameStore = create<GameStore>((set, get) => ({
   flags: getDefaultFeatureFlags(),
   turnsTaken: 0,
   brokenWalls: [],
+  activeSignId: null,
+  blockPositions: {},
+  pulledLevers: [],
+  solvedRiddleIds: [],
+
+  closeSignModal: () => set({ activeSignId: null }),
+  answerSignRiddle: (signId, optionIndex) => {
+  const { blueprint, currentFloorId, player, solvedRiddleIds, logs } = get();
+  if (!blueprint || !player || solvedRiddleIds.includes(signId)) return;
+  const floor = blueprint.floors.find((f) => f.id === currentFloorId);
+  const sign = floor?.signs?.find((s) => s.id === signId);
+  if (!sign?.riddle) return;
+
+  if (optionIndex !== sign.riddle.correctIndex) {
+    set({
+      logs: [`❌ Incorrect answer on "${sign.title}". Try again!`, ...logs].slice(0, 30),
+    });
+    return;
+  }
+
+  const nextGold = player.gold + sign.riddle.rewardGold;
+  const nextXp = player.xp + sign.riddle.rewardXp;
+  const xpThreshold = player.level * 50;
+  const leveledUp = nextXp >= xpThreshold;
+
+  set({
+    solvedRiddleIds: [...solvedRiddleIds, signId],
+    activeSignId: null,
+    player: {
+      ...player,
+      gold: nextGold,
+      xp: leveledUp ? nextXp - xpThreshold : nextXp,
+      level: leveledUp ? player.level + 1 : player.level,
+      maxHp: leveledUp ? player.maxHp + 12 : player.maxHp,
+      hp: leveledUp ? player.maxHp + 12 : player.hp,
+      atk: leveledUp ? player.atk + 2 : player.atk,
+      def: leveledUp ? player.def + 1 : player.def,
+    },
+    logs: [
+      `🧩 Solved "${sign.title}"! Earned +${sign.riddle.rewardGold}g & +${sign.riddle.rewardXp} XP!`,
+      ...logs,
+    ].slice(0, 30),
+  });
+},
   initGame: (blueprint, isEndless = false, flags) =>
     set({
       blueprint,

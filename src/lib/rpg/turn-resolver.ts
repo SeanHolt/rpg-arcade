@@ -24,6 +24,7 @@ import { getGearSellPrice } from "./gear-perks";
 import { FeatureFlagsMap } from "../feature-flag-defs";
 import { runEnemyTurnPhase } from "./enemy-ai";
 import { applyFloorTrapEffect } from "./hazard-helpers";
+import { CoordMap, getBlockPosition, isPuzzleGateOpen } from "./puzzle-helpers";
 
 export type TurnState = {
   blueprint: RpgBlueprint;
@@ -43,6 +44,9 @@ export type TurnState = {
   flags?: FeatureFlagsMap;
   turnsTaken: number;
   brokenWalls: string[];
+  blockPositions: CoordMap;
+  pulledLevers: string[];
+  activeSignId: string | null;
 };
 
 function isFloorCleared(
@@ -255,9 +259,87 @@ function computeMove(
       };
     }
   }
-
-  // 2. Melee bump enemy
+  const sign = (floor.signs ?? []).find((s) => s.x === tx && s.y === ty);
+  if (sign) {
+    return {
+      activeSignId: sign.id,
+      logs: pushLog(`📜 Inspected "${sign.title}".`),
+    };
+  }
+  const lever = (floor.levers ?? []).find((l) => l.x === tx && l.y === ty);
+  if (lever) {
+    const alreadyOn = state.pulledLevers.includes(lever.id);
+    const nextLevers = alreadyOn
+      ? state.pulledLevers.filter((id) => id !== lever.id)
+      : [...state.pulledLevers, lever.id];
+    return {
+      pulledLevers: nextLevers,
+      turnsTaken: state.turnsTaken + 1,
+      logs: pushLog(`🕹️ Flipped lever ${alreadyOn ? "OFF" : "ON"}!`),
+    };
+  }
+  const gate = (floor.puzzleGates ?? []).find((g) => g.x === tx && g.y === ty);
+  if (
+    gate &&
+    !isPuzzleGateOpen(
+      floor,
+      gate.id,
+      state.blockPositions,
+      state.pulledLevers,
+      {
+        x: player.x,
+        y: player.y,
+      },
+    )
+  ) {
+    return {
+      logs: pushLog(
+        `🚧 ${gate.label} is sealed shut! Activate its plates or levers.`,
+      ),
+    };
+  }
   const floorEnemies = enemiesByFloor[currentFloorId] ?? [];
+  const pushBlock = (floor.pushBlocks ?? []).find((b) => {
+    const pos = getBlockPosition(b, state.blockPositions);
+    return pos.x === tx && pos.y === ty;
+  });
+  if (pushBlock) {
+    const bx = tx + dx;
+    const by = ty + dy;
+    const destTile = floor.grid.at(by)?.at(bx);
+    const blockedByMob = floorEnemies.some(
+      (e) => e.currentHp > 0 && e.x === bx && e.y === by,
+    );
+    const blockedByOtherBlock = (floor.pushBlocks ?? []).some((other) => {
+      if (other.id === pushBlock.id) return false;
+      const pos = getBlockPosition(other, state.blockPositions);
+      return pos.x === bx && pos.y === by;
+    });
+    if (
+      !destTile ||
+      destTile === "#" ||
+      destTile === "S" ||
+      blockedByMob ||
+      blockedByOtherBlock
+    ) {
+      return {
+        logs: pushLog("📦 The heavy stone block won't budge that way."),
+      };
+    }
+    const nextBlocks = {
+      ...state.blockPositions,
+      [pushBlock.id]: { x: bx, y: by },
+    };
+    const nextPlayer = tickPlayerTurn({ ...player, x: tx, y: ty });
+    return {
+      blockPositions: nextBlocks,
+      player: nextPlayer,
+      exploredTiles: reveal(currentFloorId, tx, ty),
+      turnsTaken: state.turnsTaken + 1,
+      logs: pushLog("📦 You pushed the stone block forward!"),
+    };
+  }
+  // 2. Melee bump enemy
   const enemyIdx = floorEnemies.findIndex(
     (e) => e.currentHp > 0 && e.x === tx && e.y === ty,
   );

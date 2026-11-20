@@ -5,6 +5,7 @@ import type { ActiveEnemy, PlayerRuntimeState } from "@/lib/rpg/runtime-types";
 import { DUNGEON_THEMES, type ThemeId } from "@/lib/rpg/themes";
 import { resolveTileSprite } from "@/lib/rpg/tile-resolver";
 import { SpriteDisplay } from "@/components/game/SpriteDisplay";
+import { CoordMap, getBlockPosition, isPuzzleGateOpen } from "@/lib/rpg/puzzle-helpers";
 
 type Props = {
   floor: RpgFloor;
@@ -17,6 +18,8 @@ type Props = {
   openedChests: string[];
   usedShrines: string[];
   brokenWalls?: string[];
+  blockPositions?: CoordMap;
+  pulledLevers?: string[];
   onAttackEnemy?: (enemyId: string) => void;
 };
 
@@ -31,6 +34,8 @@ export function DungeonGrid({
   openedChests,
   usedShrines,
   brokenWalls = [],
+  blockPositions = {},
+  pulledLevers = [],
   onAttackEnemy,
 }: Props) {
   const theme = DUNGEON_THEMES[themeId ?? "crypt"] ?? DUNGEON_THEMES.crypt;
@@ -66,6 +71,7 @@ export function DungeonGrid({
           const prop = (floor.props ?? []).find((p) => p.x === x && p.y === y);
           const portal = (floor.portals ?? []).find((pt) => pt.x === x && pt.y === y);
           const trap = (floor.traps ?? []).find((tr) => tr.x === x && tr.y === y);
+          const sign = (floor.signs ?? []).find((s) => s.x === x && s.y === y);
           const secretWall = (floor.secretWalls ?? []).find((sw) => sw.x === x && sw.y === y);
           const isBrokenWall = Boolean(secretWall && brokenWalls.includes(secretWall.id));
 
@@ -93,6 +99,10 @@ export function DungeonGrid({
               : trap?.trapType === "lava_crack"
                 ? "🌋"
                 : "⚙️";
+          const pushBlock = (floor.pushBlocks ?? []).find((b) => { const p = getBlockPosition(b, blockPositions); return p.x === x && p.y === y; });
+          const plate = (floor.pressurePlates ?? []).find((p) => p.x === x && p.y === y);
+          const lever = (floor.levers ?? []).find((l) => l.x === x && l.y === y);
+          const gate = (floor.puzzleGates ?? []).find((g) => g.x === x && g.y === y);
 
           return (
             <div
@@ -162,7 +172,16 @@ export function DungeonGrid({
                   <span title="Cracked Wall" className="text-xs opacity-40">
                     🧱
                   </span>
-                ) : effectiveTile === "S" ? (
+                )
+                : sign ? (<span title={`Sign`} className="text-sm opacity-90">📜</span>)
+                : pushBlock ? (<span title="Push block" className="text-sm opacity-90">📦</span>)
+                : plate ? (<span title="Plate" className="text-sm opacity-90">🔘</span>)
+                : lever ? (<span title="Lever" className="text-sm opacity-90">🕹️</span>)
+                : gate && !isPuzzleGateOpen(floor, gate.id, blockPositions, pulledLevers, {x: player.x, y: player.y}) ?
+                (<span title="Closed Gate" className="text-sm opacity-90">🚧</span>)
+                : gate && isPuzzleGateOpen(floor, gate.id, blockPositions, pulledLevers, { x: player.x, y: player.y}) ?
+                (<span title="Open Gate" className="text-sm opacity-90">🔓</span>)
+                : effectiveTile === "S" ? (
                   <SpriteDisplay sprite={customSprites?.stairs ?? theme.stairsIcon} alt="Stairs" />
                 ) : effectiveTile === "H" && !usedShrines.includes(tileKey) ? (
                   <SpriteDisplay

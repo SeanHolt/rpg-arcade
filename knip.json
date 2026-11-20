@@ -1,0 +1,5 @@
+{
+  "$schema": "https://unpkg.com",
+  "entry": ["prisma/seed.ts", "prisma7.config.ts"],
+  "ignoreDependencies": ["dotenv"]
+}

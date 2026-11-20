@@ -7,6 +7,7 @@ import type {
   RpgFloorMusic,
   RpgHeroClass,
   RpgNpc,
+  RpgSign,
   RpgStarterItem,
 } from "@/lib/rpg/schema";
 import {
@@ -23,6 +24,7 @@ import {
   type RoomPrefabId,
 } from "@/lib/rpg/floor-transforms";
 import type { RpgPortalRune } from "@/lib/rpg/schema";
+import { PuzzleTool, togglePuzzleOnFloor, updateSignOnFloor } from "@/lib/rpg/puzzle-editor-helpers";
 
 export type { BrushTool };
 
@@ -38,8 +40,13 @@ type EditorStore = {
   activeTrapType: "spikes" | "poison_vent" | "lava_crack";
   activeTrapDamage: number;
 
+  togglePuzzleElement: (x: number, y: number) => void;
+  updateFloorSign: (id: string, fields: Partial<RpgSign>) => void;
   toggleFloorTrap: (x: number, y: number) => void;
-  setActiveTrapConfig: (trapType: "spikes" | "poison_vent" | "lava_crack", damage: number) => void;
+  setActiveTrapConfig: (
+    trapType: "spikes" | "poison_vent" | "lava_crack",
+    damage: number,
+  ) => void;
   toggleSecretWall: (x: number, y: number) => void;
   rotateActiveFloor: () => void;
   flipActiveFloor: () => void;
@@ -100,6 +107,40 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   activeTrapType: "spikes",
   activeTrapDamage: 8,
 
+  togglePuzzleElement: (x, y) => {
+    const { blueprint, activeFloorId, activeTool } = get();
+    const puzzleTools: PuzzleTool[] = [
+      "sign",
+      "push_block",
+      "plate",
+      "lever",
+      "gate",
+    ];
+    if (!puzzleTools.includes(activeTool as PuzzleTool)) return;
+
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId
+            ? togglePuzzleOnFloor(f, activeTool as PuzzleTool, x, y)
+            : f,
+        ),
+      },
+    });
+  },
+
+  updateFloorSign: (id, fields) => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId ? updateSignOnFloor(f, id, fields) : f,
+        ),
+      },
+    });
+  },
   setActiveTrapConfig: (trapType, damage) =>
     set({ activeTrapType: trapType, activeTrapDamage: damage }),
 
@@ -117,7 +158,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             ...f,
             secretWalls: hasAtCell
               ? existing.filter((sw) => !(sw.x === x && sw.y === y))
-              : [...existing, { id: `sw-${Date.now().toString(36)}-${x}-${y}`, x, y }],
+              : [
+                  ...existing,
+                  { id: `sw-${Date.now().toString(36)}-${x}-${y}`, x, y },
+                ],
           };
         }),
       },
@@ -125,7 +169,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
 
   toggleFloorTrap: (x, y) => {
-    const { blueprint, activeFloorId, activeTrapType, activeTrapDamage } = get();
+    const { blueprint, activeFloorId, activeTrapType, activeTrapDamage } =
+      get();
     set({
       blueprint: {
         ...blueprint,

@@ -97,6 +97,12 @@
 - `src/lib/rpg/hazard-helpers.ts` — Pure helpers resolving secret wall bashing (`brokenWallIds`) and floor hazard effects (Spike damage, Poison Vent `venom` proc, Lava Crack `fire` proc, with **Boots** 50% damage reduction & status immunity).
 - `src/components/studio/HazardsCard.tsx` — Visual Studio tool to paint/toggle **Secret Breakable Walls** (`🧱`) and **Floor Traps** (`⚙️` Spikes, `🧪` Poison Vents, `🌋` Lava Cracks).
 - `src/components/studio/HazardsCard.tsx` — Visual Studio tool to paint/toggle **Secret Breakable Walls** (`🧱`) on wall tiles and **Floor Traps** (`⚙️` Spikes, `🧪` Poison Vents, `🌋` Lava Cracks) with configurable damage on floor tiles.
+- `src/lib/rpg/schema.ts` — Added `SignSchema` (`id`, `x`, `y`, `title`, `message`, optional `riddle`), `PushBlockSchema`, `PressurePlateSchema`, `LeverSchema`, and `PuzzleGateSchema` to `FloorSchema`.
+- `src/lib/rpg/puzzle-helpers.ts` — Pure helpers resolving push-block sliding, pressure plate + lever gate unlocking (`isGateOpen`), and riddle reward validation.
+- `src/components/game/SignRiddleModal.tsx` — Interactive modal displaying lore signs and multiple-choice riddles that award bonus Gold & XP when solved.
+- `src/components/studio/PuzzlesCard.tsx` — Visual Studio tool to place and configure Lore Signs, Riddles, Push-Blocks (`📦`), Pressure Plates (`🔘`), Wall Levers (`🕹️`), and Locked Puzzle Gates (`🚧`).
+- `src/components/game/SignRiddleModal.tsx` — Interactive lore & multiple-choice riddle popup triggered when stepping onto a `Sign` (`📜`), awarding Gold and XP on correct answers.
+- `src/components/studio/PuzzlesCard.tsx` — Visual Studio tool to place and edit Lore Signs, Riddles, Push-Blocks (`📦`), Pressure Plates (`🔘`), Wall Levers (`🕹️`), and Locked Puzzle Gates (`🚧`).
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
@@ -131,6 +137,4 @@
 - [x] **Phase 38:** Multi-Variant Wall & Floor Tiles (4 Variants) + Non-Blocking Decorative Props Layer completed (`tile-resolver.ts`, `DungeonGrid.tsx`, `TileVariantsCard.tsx`).
 - [x] **Phase 39:** Room Prefab Stamps, Floor Transform Tools & Paired/One-Way Portal Runes completed (`floor-transforms.ts`, `RoomToolsCard.tsx`, portal rendering in `StudioGrid.tsx` & `DungeonGrid.tsx`).
 - [x] **Phase 40:** Secret Breakable Walls & Floor Traps/Hazards *(Spikes, Poison Vents, Lava Cracks)* completed (`hazard-helpers.ts`, `DungeonGrid.tsx`, `HazardsCard.tsx`, `StudioGrid.tsx`).
-- [ ] **Phase 41:** Interactive Lore Signs, Riddles & Push-Block / Pressure Plate / Lever Puzzles
-
-
+- [x] **Phase 41:** Interactive Lore Signs, Riddles & Push-Block / Pressure Plate / Lever Puzzles completed (`puzzle-helpers.ts`, `SignRiddleModal.tsx`, `DungeonGrid.tsx`, `PuzzlesCard.tsx`).

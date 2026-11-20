@@ -13,7 +13,12 @@ export type BrushTool =
   | "erase_entity"
   | "prop"
   | "secret_wall"
-  | "trap";
+  | "trap"
+  | "sign"
+  | "push_block"
+  | "plate"
+  | "lever"
+  | "gate";
 
 export function createBlankGrid(size: number): string[] {
   const topBottom = "#".repeat(size);

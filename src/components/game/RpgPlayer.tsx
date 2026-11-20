@@ -18,6 +18,7 @@ import { SoundToggleButton } from "./SoundToggleButton";
 import { submitRunScore } from "@/actions/leaderboards";
 import { startBgMusic, stopBgMusic } from "@/lib/audio/music-sequencer";
 import { THEME_MUSIC_PRESETS } from "@/lib/audio/music-presets";
+import { SignRiddleModal } from "./SignRiddleModal";
 
 type RpgPlayerProps = {
     gameId?: string;
@@ -71,6 +72,7 @@ export function RpgPlayer({
         triggerClassSkill,
         sellGear,
         brokenWalls,
+        activeSignId, blockPositions, pulledLevers, solvedRiddleIds, closeSignModal, answerSignRiddle
     } = useGameStore();
     const initializedForRef = useRef<RpgBlueprint | null>(null);
     useEffect(() => {
@@ -87,7 +89,7 @@ export function RpgPlayer({
         liveBlueprint.floors.find((f) => f.id === currentFloorId) ?? liveBlueprint.floors.at(0)!;
     const livingEnemies = (enemiesByFloor[currentFloor.id] ?? []).filter((e) => e.currentHp > 0);
     const activeNpc = (currentFloor.npcs ?? []).find((n) => n.id === activeNpcId);
-
+    const activeSign = (currentFloor.signs ?? []).find((s) => s.id === activeSignId);
     const currentRunKey =
         status === "victory" && (gameId || isEndless)
             ? isEndless
@@ -208,6 +210,14 @@ export function RpgPlayer({
                     onClose={closeNpcDialogue}
                 />
             )}
+            {activeSign && (
+                <SignRiddleModal
+                    sign={activeSign}
+                    isSolved={solvedRiddleIds.includes(activeSign.id)}
+                    onAnswer={(idx) => answerSignRiddle(activeSign.id, idx)}
+                    onClose={closeSignModal}
+                />
+            )}
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
                 <div>
                     <div className="flex items-center gap-3">
@@ -247,6 +257,7 @@ export function RpgPlayer({
                                 activeQuests,
                                 completedQuestIds,
                                 logs,
+                                blockPositions, pulledLevers, solvedRiddleIds
                             })}
                         />
                     )}
@@ -321,6 +332,8 @@ export function RpgPlayer({
                             openedChests={openedChests}
                             usedShrines={usedShrines}
                             onAttackEnemy={(enemyId) => rangedAttack(enemyId)}
+                            blockPositions={blockPositions}
+                            pulledLevers={pulledLevers}
                         />
                     </div>
                 </div>

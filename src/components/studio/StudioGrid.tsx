@@ -6,6 +6,8 @@ import { DUNGEON_THEMES } from "@/lib/rpg/themes";
 import { resolveTileSprite } from "@/lib/rpg/tile-resolver";
 import { SpriteDisplay } from "@/components/game/SpriteDisplay";
 
+const PUZZLE_TOOLS = ["sign", "push_block", "plate", "lever", "gate"];
+
 export function StudioGrid() {
   const {
     blueprint,
@@ -16,15 +18,16 @@ export function StudioGrid() {
     toggleFloorProp,
     toggleSecretWall,
     toggleFloorTrap,
+    togglePuzzleElement,
   } = useEditorStore();
   const [isPainting, setIsPainting] = useState(false);
 
   const floor =
-    blueprint.floors.find((f) => f.id === activeFloorId) ?? blueprint.floors[0];
+    blueprint.floors.find((f) => f.id === activeFloorId) ?? blueprint.floors.at(0);
   if (!floor) return null;
 
   const theme = DUNGEON_THEMES[blueprint.theme ?? "crypt"] ?? DUNGEON_THEMES.crypt;
-  const cols = floor.grid?.length ?? 10;
+  const cols = floor.grid.at(0)?.length ?? 10;
 
   const handleCellAction = (x: number, y: number, isClickStart: boolean) => {
     if (activeTool === "prop") {
@@ -37,6 +40,10 @@ export function StudioGrid() {
     }
     if (activeTool === "trap") {
       if (isClickStart) toggleFloorTrap(x, y);
+      return;
+    }
+    if (PUZZLE_TOOLS.includes(activeTool)) {
+      if (isClickStart) togglePuzzleElement(x, y);
       return;
     }
     paintCell(x, y);
@@ -70,6 +77,15 @@ export function StudioGrid() {
               (sw) => sw.x === x && sw.y === y
             );
             const trap = (floor.traps ?? []).find((tr) => tr.x === x && tr.y === y);
+            const sign = (floor.signs ?? []).find((s) => s.x === x && s.y === y);
+            const pushBlock = (floor.pushBlocks ?? []).find(
+              (b) => b.x === x && b.y === y
+            );
+            const plate = (floor.pressurePlates ?? []).find(
+              (p) => p.x === x && p.y === y
+            );
+            const lever = (floor.levers ?? []).find((l) => l.x === x && l.y === y);
+            const gate = (floor.puzzleGates ?? []).find((g) => g.x === x && g.y === y);
 
             const trapIcon =
               trap?.trapType === "poison_vent"
@@ -130,6 +146,26 @@ export function StudioGrid() {
                     />
                   ) : npc ? (
                     <SpriteDisplay sprite={npc.sprite} sizeClass="h-6 w-6" />
+                  ) : sign ? (
+                    <span title={sign.title} className="text-sm">
+                      📜
+                    </span>
+                  ) : pushBlock ? (
+                    <span title="Movable Push-Block" className="text-sm">
+                      📦
+                    </span>
+                  ) : gate ? (
+                    <span title={gate.label} className="text-sm">
+                      🚧
+                    </span>
+                  ) : lever ? (
+                    <span title="Wall Lever" className="text-sm">
+                      🕹️
+                    </span>
+                  ) : plate ? (
+                    <span title="Pressure Plate" className="text-sm">
+                      🔘
+                    </span>
                   ) : portal ? (
                     <span
                       title={`Portal → (${portal.targetX}, ${portal.targetY})`}

@@ -1,6 +1,11 @@
 import type { GearItem, GearSlot } from "./gear-perks";
 export type { GearItem, GearSlot };
-import type { ElementType, RpgBlueprint, RpgEnemy, RpgStarterItem } from "./schema";
+import type {
+  ElementType,
+  RpgBlueprint,
+  RpgEnemy,
+  RpgStarterItem,
+} from "./schema";
 
 export type GameStatus =
   | "idle"
@@ -71,6 +76,9 @@ export type SerializedRunSnapshot = {
   completedQuestIds?: string[];
   turnsTaken?: number;
   brokenWalls?: string[];
+  blockPositions?: Record<string, { x: number; y: number }>;
+  pulledLevers?: string[];
+  solvedRiddleIds?: string[];
 };
 export type ActiveQuestProgress = {
   questId: string;

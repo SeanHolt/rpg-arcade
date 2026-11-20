@@ -12,6 +12,8 @@ import { MusicSequencerCard } from "./MusicSequencerCard";
 import { SpriteSheetSlicerModal } from "./SpriteSheetSlicerModal";
 import { TileVariantsCard } from "./TileVariantsCard";
 import { RoomToolsCard } from "./RoomToolsCard";
+import { HazardsCard } from "./HazardsCard";
+import { PuzzlesCard } from "./PuzzlesCard";
 
 type TileSlot = "wall" | "floor" | "stairs" | "shrine" | "chest";
 
@@ -112,6 +114,8 @@ export function StudioInspector() {
                 />
                 <TileVariantsCard />
                 <RoomToolsCard />
+                <HazardsCard />
+                <PuzzlesCard />
                 <button
                     type="button"
                     onClick={() => setSlicingSheet(true)}
