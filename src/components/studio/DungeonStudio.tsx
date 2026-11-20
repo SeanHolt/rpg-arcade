@@ -203,7 +203,7 @@ export function DungeonStudio({
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <StudioGrid />
-        <StudioInspector />
+        <StudioInspector isPro={isPro} />
       </div>
     </div>
   );

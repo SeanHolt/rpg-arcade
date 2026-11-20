@@ -14,10 +14,11 @@ import { TileVariantsCard } from "./TileVariantsCard";
 import { RoomToolsCard } from "./RoomToolsCard";
 import { HazardsCard } from "./HazardsCard";
 import { PuzzlesCard } from "./PuzzlesCard";
+import { BossPhase2Editor } from "./BossPhase2Editor";
 
 type TileSlot = "wall" | "floor" | "stairs" | "shrine" | "chest";
 
-export function StudioInspector() {
+export function StudioInspector({ isPro = false }: { isPro?: boolean }) {
     const {
         blueprint,
         activeFloorId,
@@ -113,7 +114,7 @@ export function StudioInspector() {
                     onChange={setFloorMusic}
                 />
                 <TileVariantsCard />
-                <RoomToolsCard />
+                <RoomToolsCard isPro={isPro} />
                 <HazardsCard />
                 <PuzzlesCard />
                 <button
@@ -324,6 +325,7 @@ export function StudioInspector() {
                         </select>
                     </label>
                     <EnemyAiEditor enemy={enemy} onUpdate={(fields) => updateEnemy(enemy.id, fields)} />
+                    <BossPhase2Editor enemy={enemy} isPro={isPro} onUpdate={(fields) => updateEnemy(enemy.id, fields)} />
                 </div>
             )}
 

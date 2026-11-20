@@ -1,6 +1,7 @@
 import type { RpgBlueprint } from "./schema";
 import type { ActiveEnemy, PlayerRuntimeState } from "./runtime-types";
 import { consumeFreeze, tickDamageOverTime } from "./elemental-helpers";
+import { checkBossPhase2Transform } from "./boss-phase-helper";
 
 export function runEnemyTurnPhase(
   floor: RpgBlueprint["floors"][number],
@@ -18,6 +19,11 @@ export function runEnemyTurnPhase(
   const nextEnemies = enemies.map((e) => ({ ...e }));
 
   for (let i = 0; i < nextEnemies.length; i++) {
+    const p2Check = checkBossPhase2Transform(nextEnemies[i]);
+    if (p2Check.transformLog) {
+      nextEnemies[i] = p2Check.enemy;
+      aiLogs.push(p2Check.transformLog);
+    }
     const enemy = nextEnemies[i];
     if (enemy.currentHp <= 0) continue;
 

@@ -19,6 +19,7 @@ export type ActiveEnemy = RpgEnemy & {
   statuses: ActiveStatusEffect[];
   isChargingSpecial: boolean;
   specialCooldown: number;
+  hasTransformed?: boolean;
 };
 export type PotionItem = {
   id: string;

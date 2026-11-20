@@ -19,6 +19,7 @@ import { submitRunScore } from "@/actions/leaderboards";
 import { startBgMusic, stopBgMusic } from "@/lib/audio/music-sequencer";
 import { THEME_MUSIC_PRESETS } from "@/lib/audio/music-presets";
 import { SignRiddleModal } from "./SignRiddleModal";
+import { WeatherOverlay } from "./WeatherOverlay";
 
 type RpgPlayerProps = {
     gameId?: string;
@@ -335,6 +336,7 @@ export function RpgPlayer({
                             blockPositions={blockPositions}
                             pulledLevers={pulledLevers}
                         />
+                        <WeatherOverlay weather={currentFloor.weather} />
                     </div>
                 </div>
 

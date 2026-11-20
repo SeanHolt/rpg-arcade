@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type {
+  FloorWeatherType,
   RpgBlueprint,
   RpgChest,
   RpgEnemy,
@@ -24,7 +25,11 @@ import {
   type RoomPrefabId,
 } from "@/lib/rpg/floor-transforms";
 import type { RpgPortalRune } from "@/lib/rpg/schema";
-import { PuzzleTool, togglePuzzleOnFloor, updateSignOnFloor } from "@/lib/rpg/puzzle-editor-helpers";
+import {
+  PuzzleTool,
+  togglePuzzleOnFloor,
+  updateSignOnFloor,
+} from "@/lib/rpg/puzzle-editor-helpers";
 
 export type { BrushTool };
 
@@ -39,6 +44,7 @@ type EditorStore = {
   activePropSprite: string;
   activeTrapType: "spikes" | "poison_vent" | "lava_crack";
   activeTrapDamage: number;
+  setFloorWeather: (weather: FloorWeatherType) => void;
 
   togglePuzzleElement: (x: number, y: number) => void;
   updateFloorSign: (id: string, fields: Partial<RpgSign>) => void;
@@ -107,6 +113,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   activeTrapType: "spikes",
   activeTrapDamage: 8,
 
+  setFloorWeather: (weather) => {
+    const { blueprint, activeFloorId } = get();
+    set({
+      blueprint: {
+        ...blueprint,
+        floors: blueprint.floors.map((f) =>
+          f.id === activeFloorId ? { ...f, weather } : f,
+        ),
+      },
+    });
+  },
   togglePuzzleElement: (x, y) => {
     const { blueprint, activeFloorId, activeTool } = get();
     const puzzleTools: PuzzleTool[] = [

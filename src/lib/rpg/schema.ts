@@ -57,6 +57,20 @@ export const HeroClassSchema = z.object({
   skill: ClassSkillSchema.optional(),
   element: ElementTypeSchema,
 });
+const BossPhase2Schema = z.object({
+  triggerHpPercent: z.number().int().min(10).max(90).default(50),
+  name: z.string().min(1).max(40),
+  sprite: SpriteFieldSchema,
+  atkBonus: z.number().int().min(0).max(100).default(5),
+  defBonus: z.number().int().min(0).max(100).default(2),
+  element: ElementTypeSchema,
+  battleCry: z.string().min(1).max(120).default("Unleashes true power!"),
+});
+
+const WeatherTypeEnum = z
+  .enum(["none", "embers", "snow", "spores", "starlight"])
+  .default("none");
+
 export const EnemySchema = z.object({
   id: z.string().min(1).max(40),
   name: z.string().min(1).max(40),
@@ -72,6 +86,7 @@ export const EnemySchema = z.object({
   element: ElementTypeSchema,
   aiBehavior: z.enum(["stationary", "patrol", "hunter"]).default("stationary"),
   specialAttack: EnemySpecialSchema.optional(),
+  phase2: BossPhase2Schema.optional(),
 });
 
 export const ChestSchema = z.object({
@@ -249,6 +264,7 @@ export const FloorSchema = z
     npcs: z.array(NpcSchema).max(20).default([]),
     stairways: z.array(StairwaySchema).max(20).default([]),
     musicTrack: FloorMusicSchema.optional(),
+     weather: WeatherTypeEnum.optional(),
   })
   .refine(
     (floor) => {
@@ -416,3 +432,5 @@ export type RpgPushBlock = z.infer<typeof PushBlockSchema>;
 export type RpgPressurePlate = z.infer<typeof PressurePlateSchema>;
 export type RpgLever = z.infer<typeof LeverSchema>;
 export type RpgPuzzleGate = z.infer<typeof PuzzleGateSchema>;
+export type RpgBossPhase2 = z.infer<typeof BossPhase2Schema>;
+export type FloorWeatherType = z.infer<typeof WeatherTypeEnum>;

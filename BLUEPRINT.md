@@ -103,10 +103,14 @@
 - `src/components/studio/PuzzlesCard.tsx` — Visual Studio tool to place and configure Lore Signs, Riddles, Push-Blocks (`📦`), Pressure Plates (`🔘`), Wall Levers (`🕹️`), and Locked Puzzle Gates (`🚧`).
 - `src/components/game/SignRiddleModal.tsx` — Interactive lore & multiple-choice riddle popup triggered when stepping onto a `Sign` (`📜`), awarding Gold and XP on correct answers.
 - `src/components/studio/PuzzlesCard.tsx` — Visual Studio tool to place and edit Lore Signs, Riddles, Push-Blocks (`📦`), Pressure Plates (`🔘`), Wall Levers (`🕹️`), and Locked Puzzle Gates (`🚧`).
+- `src/lib/rpg/schema.ts` — Added `BossPhase2Schema` (`triggerHpPercent`, `name`, `sprite`, `atkBonus`, `defBonus`, `element`, `battleCry`) on `EnemySchema` and `weather` (`"none" | "embers" | "snow" | "spores" | "starlight"`) on `FloorSchema`.
+- `src/lib/rpg/boss-phase-helper.ts` — Pure helper evaluating whether an injured boss crosses `triggerHpPercent` and transforms into Phase 2 (`hasTransformed: true`).
+- `src/components/game/WeatherOverlay.tsx` — Pure CSS floating particle overlay (`embers`, `snow`, `spores`, `starlight`) rendered non-interactively over `DungeonGrid`.
 
 ## 3. Formatting Rule for AI Assistant
 - Keep all generated code blocks concise (under ~120 lines per block) and split large components into small helper files so code blocks never truncate or break formatting.
 - Never overwrite `BLUEPRINT.md` with shortened summaries—always provide append-only delta updates.
+- never write an edit to an existing file that is no longer in the context unless its current code is pasted in the conversation or written from scratch.
 
 ## 4. Build Roadmap & Status
 - [x] **Phases 0–7:** Core Arcade MVP (Auth, Zod Schema, JSON Upload, Zustand Engine, Play UI, Home Feed, Seed)
@@ -138,3 +142,5 @@
 - [x] **Phase 39:** Room Prefab Stamps, Floor Transform Tools & Paired/One-Way Portal Runes completed (`floor-transforms.ts`, `RoomToolsCard.tsx`, portal rendering in `StudioGrid.tsx` & `DungeonGrid.tsx`).
 - [x] **Phase 40:** Secret Breakable Walls & Floor Traps/Hazards *(Spikes, Poison Vents, Lava Cracks)* completed (`hazard-helpers.ts`, `DungeonGrid.tsx`, `HazardsCard.tsx`, `StudioGrid.tsx`).
 - [x] **Phase 41:** Interactive Lore Signs, Riddles & Push-Block / Pressure Plate / Lever Puzzles completed (`puzzle-helpers.ts`, `SignRiddleModal.tsx`, `DungeonGrid.tsx`, `PuzzlesCard.tsx`).
+- [ ] **Phase 42:** Multi-Phase Boss Transformations & Weather Particle Overlays (Creator Pro) *(Step 42A — Current)*
+- [ ] **Phase 43:** Pro Player Royal Hero Skins, Gold Footstep Trail & Leaderboard Flair

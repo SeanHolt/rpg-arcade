@@ -252,6 +252,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       statuses: [],
       isChargingSpecial: false,
       specialCooldown: e.specialAttack?.cooldown ?? 3,
+      hasTransformed: false
     }));
     set({
       blueprint: { ...blueprint, floors: [floor] },

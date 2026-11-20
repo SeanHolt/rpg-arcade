@@ -11,6 +11,7 @@ import {
   applyXpAndLevel,
   getRevealedKeys,
   recalculateStats,
+  resolveMeleeBump,
 } from "./combat-helpers";
 import { incrementQuestProgress } from "./quest-helpers";
 import {
@@ -19,7 +20,6 @@ import {
   getEffectivePlayerElement,
   tickDamageOverTime,
 } from "./elemental-helpers";
-import { resolveMeleeBump } from "./melee-combat";
 import { getGearSellPrice } from "./gear-perks";
 import { FeatureFlagsMap } from "../feature-flag-defs";
 import { runEnemyTurnPhase } from "./enemy-ai";
